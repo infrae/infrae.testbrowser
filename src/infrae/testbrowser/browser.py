@@ -25,7 +25,8 @@ class Browser(object):
         self.__method = None
         self.__response = None
         self.__content = None
-        self.__query = {}
+        self.__data = None
+        self.__data_type = None
         self.__request_headers = dict()
         self.__history = collections.deque([], HISTORY_LENGTH)
         self.html = None
@@ -83,7 +84,7 @@ class Browser(object):
     def history(self):
         return map(lambda e: e[0], self.__history)
 
-    def _query_application(self, url, method, query):
+    def _query_application(self, url, method, query, data, data_type):
         url_info = urlparse.urlparse(url)
         query_string = urllib.urlencode(query) if query else ''
         uri = urlparse.urlunparse(
@@ -98,28 +99,37 @@ class Browser(object):
         if url_info.username and url_info.password:
             headers['Authorization'] = format_auth(
                 url_info.username, url_info.password)
-        self._process_response(self.__server(method, uri, headers.items()))
+        self._process_response(
+            self.__server(method, uri, headers.items(), data, data_type))
 
     def _process_response(self, response):
         self.__response = response
         content_type = self.content_type
-        if content_type and (content_type.startswith('text/html') or \
-                content_type.startswith('text/xhtml')):
+        if content_type and (content_type.startswith('text/html') or
+                             content_type.startswith('text/xhtml')):
             self.html = lxml.html.document_fromstring(self.content)
 
-    def open(self, url, method='GET', query=None):
+    def open(self, url, method='GET', query=None, form=None):
         if self.__response:
             self.__history.append(
                 (self.__url, self.__method, self.__response))
-        query = query if query is not None else {}
+        data = None
+        data_type = None
         self.html = None
         self.__response = None
         self.__method = method
-        self._query_application(url, method, query)
+        if form is not None:
+            data = urllib.urlencode(form)
+            data_type = 'application/x-www-form-urlencoded'
+        self.__data = data
+        self.__data_type = data_type
+        self._query_application(url, method, query, data, data_type)
         return self.status_code
 
     def reload(self):
+        assert self.__url is not None, "No URL to reload"
         self.html = None
         self.__response = None
-        self._query_application(self.__url, self.__method, None)
+        self._query_application(
+            self.__url, self.__method, None, self.__data, self.__data_type)
         return self.status_code

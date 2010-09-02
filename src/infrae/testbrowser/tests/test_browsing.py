@@ -25,6 +25,8 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertRaises(
             KeyError, operator.itemgetter('Nothing'), browser.headers)
         self.assertEqual(browser.html, None)
+        self.assertRaises(
+            AssertionError, browser.reload)
 
     def test_write(self):
         browser = Browser(app.test_app_write)
@@ -187,6 +189,29 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(
             browser.html.xpath('//li/text()'),
             ['METHOD: GET', 'URL: /root.html', 'QUERY: position=42&name=index'])
+
+    def test_form(self):
+        browser = Browser(app.test_app_data)
+        browser.open('http://localhost/root.exe',
+                     form={'position': '42', 'name': 'index'})
+        self.assertEqual(browser.url, '/root.exe')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['content type:application/x-www-form-urlencoded',
+             'content length:22',
+             'position=42&name=index'])
+
+        browser.reload()
+        self.assertEqual(browser.url, '/root.exe')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['content type:application/x-www-form-urlencoded',
+             'content length:22',
+             'position=42&name=index'])
 
 
 def test_suite():

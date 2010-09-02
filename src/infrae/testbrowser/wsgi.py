@@ -55,7 +55,7 @@ class WSGIServer(object):
         environ['wsgi.handleErrors'] = self.handle_errors
         return environ
 
-    def get_environ(self, method, uri, headers, data=None):
+    def get_environ(self, method, uri, headers, data=None, data_type=None):
         query = ''
         environ = self.get_default_environ()
         environ['REQUEST_METHOD'] = method
@@ -64,18 +64,18 @@ class WSGIServer(object):
             uri, query = uri.split('?', 1)
         environ['PATH_INFO'] = uri
         environ['QUERY_STRING'] = query
-        if data is not None:
+        if data is not None and data_type is not None:
             environ['wsgi.input'].write(data)
             environ['wsgi.input'].seek(0)
             environ['CONTENT_LENGTH'] = len(data)
-            environ['CONTENT_TYPE'] = 'text/plain'
+            environ['CONTENT_TYPE'] = data_type
         for name, value in headers:
             http_name = ('HTTP_' + name.upper()).replace('-', '_')
             environ[http_name] = value
         return environ
 
-    def __call__(self, method, uri, headers, data=None):
-        environ = self.get_environ(method, uri, headers, data=None)
+    def __call__(self, method, uri, headers, data=None, data_type=None):
+        environ = self.get_environ(method, uri, headers, data, data_type)
         response = WSGIResponse(self.__app, environ)
         response()
         return response

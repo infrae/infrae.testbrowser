@@ -46,6 +46,14 @@ def test_app_text(environ, start_response):
     return ['Hello world!']
 
 
+def test_app_data(environ, start_response):
+    start_response('200 Ok', (('Content-type', 'text/html'),))
+    return ['<html><ul>',
+            '<li>content type:%s</li>' % environ.get('CONTENT_TYPE', 'n/a'),
+            '<li>content length:%s</li>' % environ.get('CONTENT_LENGTH', 'n/a'),
+            '<li>%s</li></ul></html>' % environ['wsgi.input'].read()]
+
+
 class TestAppCount(object):
 
     def __init__(self):
