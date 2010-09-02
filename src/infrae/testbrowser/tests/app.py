@@ -41,6 +41,11 @@ def test_app_query(environ, start_response):
             '<li>QUERY: %s</li></ul></html>' % environ['QUERY_STRING']]
 
 
+def test_app_text(environ, start_response):
+    start_response('200 Ok', (('Content-type', 'text/plain'),))
+    return ['Hello world!']
+
+
 class TestAppCount(object):
 
     def __init__(self):

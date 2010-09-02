@@ -116,8 +116,10 @@ class Browser(object):
         self.__response = None
         self.__method = method
         self._query_application(url, method, query)
+        return self.status_code
 
     def reload(self):
         self.html = None
         self.__response = None
         self._query_application(self.__url, self.__method, None)
+        return self.status_code

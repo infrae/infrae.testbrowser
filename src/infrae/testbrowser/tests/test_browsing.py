@@ -88,6 +88,17 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
         self.assertNotEqual(browser.html, None)
 
+    def test_text(self):
+        browser = Browser(app.test_app_text)
+        browser.open('/readme.txt')
+        self.assertEqual(browser.url, '/readme.txt')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.status_code, 200)
+        self.assertEqual(browser.content, 'Hello world!')
+        self.assertEqual(browser.content_type, 'text/plain')
+        self.assertEqual(browser.headers.get('Content-Type'), 'text/plain')
+        self.assertEqual(browser.html, None)
+
     def test_history(self):
         browser = Browser(app.test_app_iter)
         self.assertEqual(browser.history, [])
