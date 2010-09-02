@@ -213,6 +213,79 @@ class BrowsingTestCase(unittest.TestCase):
              'content length:22',
              'position=42&name=index'])
 
+    def test_disabled_redirect(self):
+        browser = Browser(app.TestAppRedirect())
+        browser.options.follow_redirect = False
+        browser.open('/redirect.html')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.url, '/redirect.html')
+        self.assertEqual(browser.status, '301 Moved Permanently')
+        self.assertEqual(browser.content, '')
+
+    def test_get_permanent_redirect(self):
+        browser = Browser(app.TestAppRedirect())
+        browser.open('/redirect.html')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.url, '/target.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+
+    def test_head_permanent_redirect(self):
+        browser = Browser(app.TestAppRedirect())
+        browser.open('/redirect.html', method='HEAD')
+        self.assertEqual(browser.method, 'HEAD')
+        self.assertEqual(browser.url, '/target.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+
+    def test_put_permanent_redirect(self):
+        browser = Browser(app.TestAppRedirect())
+        browser.open('/redirect.html', method='PUT')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.url, '/target.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+
+    def test_post_permanent_redirect(self):
+        browser = Browser(app.TestAppRedirect())
+        browser.open('/redirect.html', method='POST')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.url, '/target.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+
+    def test_get_temporary_redirect(self):
+        browser = Browser(app.TestAppRedirect('302 Moved'))
+        browser.open('/redirect.html')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.url, '/target.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+
+    def test_head_temporary_redirect(self):
+        browser = Browser(app.TestAppRedirect('302 Moved'))
+        browser.open('/redirect.html', method='HEAD')
+        self.assertEqual(browser.method, 'HEAD')
+        self.assertEqual(browser.url, '/target.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+
+    def test_put_temporary_redirect(self):
+        browser = Browser(app.TestAppRedirect('302 Moved'))
+        browser.open('/redirect.html', method='PUT')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.url, '/target.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+
+    def test_post_temporary_redirect(self):
+        browser = Browser(app.TestAppRedirect('302 Moved'))
+        browser.open('/redirect.html', method='POST')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.url, '/target.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+
 
 def test_suite():
     suite = unittest.TestSuite()

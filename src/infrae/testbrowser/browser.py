@@ -9,18 +9,47 @@ import urllib
 import lxml.html
 
 from infrae.testbrowser.wsgi import WSGIServer
+from infrae.testbrowser.form import Form
 
 HISTORY_LENGTH = 20
 
 
 def format_auth(user, password):
-    return ':'.join((user, password)).encode('base64').strip()
+    return 'Basic ' + ':'.join((user, password)).encode('base64').strip()
+
+
+def node_to_text(node):
+    return node.text_content().strip()
+
+
+class Options(object):
+    follow_redirect = True
+    cookie_support = True
+
+
+class Expressions(object):
+
+    def __init__(self, browser):
+        self.__browser = browser
+        self.__expressions = {}
+
+    def add(self, name, xpath):
+        self.__expressions[name] = xpath
+
+    def __getattr__(self, name):
+        expression = self.__expressions.get(name)
+        if expression:
+            assert self.__browser.html is not None, u'Not viewing HTML'
+            return map(node_to_text, self.__browser.html.xpath(expression))
+        raise AttributeError(name)
 
 
 class Browser(object):
 
     def __init__(self, app):
         self.__server = WSGIServer(app)
+        self.options = Options()
+        self.inspect = Expressions(self)
         self.__url = None
         self.__method = None
         self.__response = None
@@ -104,6 +133,24 @@ class Browser(object):
 
     def _process_response(self, response):
         self.__response = response
+
+        # Cookie support
+        if self.options.cookie_support:
+            cookie = self.headers.get('Set-Cookie')
+            if cookie:
+                self.set_request_header('Cookie', cookie)
+
+        # Redirect
+        if (self.status_code in (301, 302, 303) and
+            self.options.follow_redirect):
+            if self.__method not in ('GET', 'HEAD'):
+                self.__method = 'GET'
+            location = self.headers.get('Location')
+            assert location is not None, 'Redirect without location header'
+            return self._query_application(
+                location, self.__method, None, None, None)
+
+        # Parse HTML
         content_type = self.content_type
         if content_type and (content_type.startswith('text/html') or
                              content_type.startswith('text/xhtml')):
@@ -127,9 +174,15 @@ class Browser(object):
         return self.status_code
 
     def reload(self):
-        assert self.__url is not None, "No URL to reload"
+        assert self.__url is not None, 'No URL to reload'
         self.html = None
         self.__response = None
         self._query_application(
             self.__url, self.__method, None, self.__data, self.__data_type)
         return self.status_code
+
+    def get_form(self, name):
+        assert self.html is not None, 'Not viewing HTML'
+        nodes = self.html.xpath('//form[@name="%s"]' % name)
+        assert len(nodes) == 1, 'Form element not found'
+        return Form(nodes[0], self)

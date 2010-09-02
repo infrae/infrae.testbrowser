@@ -64,3 +64,16 @@ class TestAppCount(object):
         start_response('200 Ok', (('Content-type', 'text/html'),))
         return ['<html><p>Call %d, path %s</p></html>' % (
                 self.count, environ['PATH_INFO'])]
+
+
+class TestAppRedirect(object):
+
+    def __init__(self, code='301 Moved Permanently'):
+        self.code = code
+
+    def __call__(self, environ, start_response):
+        if environ['PATH_INFO'] == '/redirect.html':
+            start_response(self.code, (('Location', '/target.html'),))
+            return []
+        start_response('200 Ok', (('Content-type', 'text/html'),))
+        return ['<html><p>It works!</p></html>']

@@ -4,9 +4,14 @@
 # $Id$
 
 from cStringIO import StringIO
+from zope.interface import implements
+
 from infrae.wsgi.headers import HTTPHeaders
+from infrae.testbrowser.interfaces import IWSGIServer, IWSGIResponse
+
 
 class WSGIResponse(object):
+    implements(IWSGIResponse)
 
     def __init__(self, app, environ):
         self.__app = app
@@ -32,6 +37,7 @@ class WSGIResponse(object):
 
 
 class WSGIServer(object):
+    implements(IWSGIServer)
     server = 'localhost'
     port = '80'
     protocol = 'HTTP/1.0'
