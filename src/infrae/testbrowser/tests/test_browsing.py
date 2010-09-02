@@ -18,7 +18,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, None)
         self.assertEqual(browser.status, None)
         self.assertEqual(browser.status_code, None)
-        self.assertEqual(browser.content, None)
+        self.assertEqual(browser.contents, None)
         self.assertEqual(browser.headers, {})
         self.assertEqual(browser.content_type, None)
         self.assertEqual(browser.headers.get('Content-Type'), None)
@@ -36,7 +36,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(browser.status_code, 200)
         self.assertEqual(
-            browser.content,
+            browser.contents,
             '<html><ul>'
             '<li>SERVER: http://localhost:80/</li>'
             '<li>METHOD: GET</li>'
@@ -60,7 +60,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(browser.status_code, 200)
         self.assertEqual(
-            browser.content,
+            browser.contents,
             '<html><ul>'
             '<li>SERVER: http://localhost:80/</li>'
             '<li>METHOD: PUT</li>'
@@ -79,7 +79,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(browser.status_code, 200)
         self.assertEqual(
-            browser.content,
+            browser.contents,
             '<html><ul>'
             '<li>SERVER: http://localhost:80/</li>'
             '<li>METHOD: PUT</li>'
@@ -96,7 +96,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/readme.txt')
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(browser.status_code, 200)
-        self.assertEqual(browser.content, 'Hello world!')
+        self.assertEqual(browser.contents, 'Hello world!')
         self.assertEqual(browser.content_type, 'text/plain')
         self.assertEqual(browser.headers.get('Content-Type'), 'text/plain')
         self.assertEqual(browser.html, None)
@@ -122,7 +122,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertNotEqual(browser.html, None)
         self.assertEqual(
             browser.html.xpath('//li/text()'),
-            ['HTTP_AUTHORIZATION:dXNlcjpwYXNzd29yZA=='])
+            ['HTTP_AUTHORIZATION:Basic dXNlcjpwYXNzd29yZA=='])
 
     def test_login(self):
         browser = Browser(app.test_app_headers)
@@ -133,7 +133,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertNotEqual(browser.html, None)
         self.assertEqual(
             browser.html.xpath('//li/text()'),
-            ['HTTP_AUTHORIZATION:dXNlcjpwYXNzd29yZA=='])
+            ['HTTP_AUTHORIZATION:Basic dXNlcjpwYXNzd29yZA=='])
 
     def test_set_and_headers(self):
         browser = Browser(app.test_app_headers)
@@ -159,7 +159,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/root.html')
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(
-            browser.content,
+            browser.contents,
             '<html><p>Call 1, path /root.html</p></html>')
         self.assertEqual(browser.history, [])
 
@@ -167,7 +167,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/root.html')
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(
-            browser.content,
+            browser.contents,
             '<html><p>Call 2, path /root.html</p></html>')
         self.assertEqual(browser.history, [])
 
@@ -220,7 +220,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'GET')
         self.assertEqual(browser.url, '/redirect.html')
         self.assertEqual(browser.status, '301 Moved Permanently')
-        self.assertEqual(browser.content, '')
+        self.assertEqual(browser.contents, '')
 
     def test_get_permanent_redirect(self):
         browser = Browser(app.TestAppRedirect())
@@ -228,7 +228,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'GET')
         self.assertEqual(browser.url, '/target.html')
         self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+        self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
     def test_head_permanent_redirect(self):
         browser = Browser(app.TestAppRedirect())
@@ -236,7 +236,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'HEAD')
         self.assertEqual(browser.url, '/target.html')
         self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+        self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
     def test_put_permanent_redirect(self):
         browser = Browser(app.TestAppRedirect())
@@ -244,7 +244,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'GET')
         self.assertEqual(browser.url, '/target.html')
         self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+        self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
     def test_post_permanent_redirect(self):
         browser = Browser(app.TestAppRedirect())
@@ -252,7 +252,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'GET')
         self.assertEqual(browser.url, '/target.html')
         self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+        self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
     def test_get_temporary_redirect(self):
         browser = Browser(app.TestAppRedirect('302 Moved'))
@@ -260,7 +260,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'GET')
         self.assertEqual(browser.url, '/target.html')
         self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+        self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
     def test_head_temporary_redirect(self):
         browser = Browser(app.TestAppRedirect('302 Moved'))
@@ -268,7 +268,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'HEAD')
         self.assertEqual(browser.url, '/target.html')
         self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+        self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
     def test_put_temporary_redirect(self):
         browser = Browser(app.TestAppRedirect('302 Moved'))
@@ -276,7 +276,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'GET')
         self.assertEqual(browser.url, '/target.html')
         self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+        self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
     def test_post_temporary_redirect(self):
         browser = Browser(app.TestAppRedirect('302 Moved'))
@@ -284,7 +284,7 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.method, 'GET')
         self.assertEqual(browser.url, '/target.html')
         self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.content, '<html><p>It works!</p></html>')
+        self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
 
 def test_suite():
