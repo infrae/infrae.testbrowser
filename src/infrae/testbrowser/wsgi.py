@@ -33,7 +33,7 @@ class WSGIResponse(object):
 
 class WSGIServer(object):
     server = 'localhost'
-    port = 80
+    port = '80'
     protocol = 'HTTP/1.0'
 
     def __init__(self, app):

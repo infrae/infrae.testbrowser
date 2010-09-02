@@ -103,8 +103,8 @@ class Browser(object):
     def _process_response(self, response):
         self.__response = response
         content_type = self.content_type
-        if content_type.startswith('text/html') or \
-                content_type.startswith('text/xhtml'):
+        if content_type and (content_type.startswith('text/html') or \
+                content_type.startswith('text/xhtml')):
             self.html = lxml.html.document_fromstring(self.content)
 
     def open(self, url, method='GET', query=None):
