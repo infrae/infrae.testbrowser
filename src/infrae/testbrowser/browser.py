@@ -53,7 +53,6 @@ class Browser(object):
         self.__url = None
         self.__method = None
         self.__response = None
-        self.__content = None
         self.__data = None
         self.__data_type = None
         self.__request_headers = dict()
@@ -91,7 +90,7 @@ class Browser(object):
         return {}
 
     @property
-    def content(self):
+    def contents(self):
         if self.__response is not None:
             return self.__response.output.getvalue()
         return None
@@ -154,7 +153,7 @@ class Browser(object):
         content_type = self.content_type
         if content_type and (content_type.startswith('text/html') or
                              content_type.startswith('text/xhtml')):
-            self.html = lxml.html.document_fromstring(self.content)
+            self.html = lxml.html.document_fromstring(self.contents)
 
     def open(self, url, method='GET', query=None, form=None):
         if self.__response:

@@ -42,6 +42,12 @@ class Control(HTMLElement):
 
     def __setattr__(self, name, value):
         if name == 'value':
+            if not self.multiple:
+                if not isinstance(value, basestring):
+                    value = str(value)
+            elif ((not isinstance(value, list)) or
+                  isinstance(value, basestring)):
+                value = [value]
             self.html.value = value
         return super(Control, self).__setattr__(name, value)
 
