@@ -166,8 +166,16 @@ class Browser(object):
         self.__response = None
         self.__method = method
         if form is not None:
-            data = urllib.urlencode(form)
-            data_type = 'application/x-www-form-urlencoded'
+            # We posted a form
+            if method == 'GET':
+                if query is not None:
+                    raise AssertionError(
+                        u'Cannot handle aquery with a GET form')
+                query = form
+            else:
+                assert method == 'POST', u'Only support POST or GET forms'
+                data = urllib.urlencode(form)
+                data_type = 'application/x-www-form-urlencoded'
         self.__data = data
         self.__data_type = data_type
         self._query_application(url, method, query, data, data_type)

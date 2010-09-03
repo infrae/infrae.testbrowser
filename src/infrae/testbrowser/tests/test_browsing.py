@@ -190,12 +190,14 @@ class BrowsingTestCase(unittest.TestCase):
             browser.html.xpath('//li/text()'),
             ['METHOD: GET', 'URL: /root.html', 'QUERY: position=42&name=index'])
 
-    def test_form(self):
+    def test_form_post(self):
         browser = Browser(app.test_app_data)
         browser.open('http://localhost/root.exe',
+                     method='POST',
                      form={'position': '42', 'name': 'index'})
         self.assertEqual(browser.url, '/root.exe')
         self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.method, 'POST')
         self.assertNotEqual(browser.html, None)
         self.assertEqual(
             browser.html.xpath('//li/text()'),
@@ -206,12 +208,51 @@ class BrowsingTestCase(unittest.TestCase):
         browser.reload()
         self.assertEqual(browser.url, '/root.exe')
         self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.method, 'POST')
         self.assertNotEqual(browser.html, None)
         self.assertEqual(
             browser.html.xpath('//li/text()'),
             ['content type:application/x-www-form-urlencoded',
              'content length:22',
              'position=42&name=index'])
+
+    def test_form_get(self):
+        browser = Browser(app.test_app_data)
+        browser.open('http://localhost/root.exe',
+                     method='GET',
+                     form={'position': '42', 'name': 'index'})
+        self.assertEqual(browser.url, '/root.exe?position=42&name=index')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['content type:n/a',
+             'content length:n/a'])
+
+        browser.reload()
+        self.assertEqual(browser.url, '/root.exe?position=42&name=index')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['content type:n/a',
+             'content length:n/a'])
+
+    def test_form_invalid(self):
+        browser = Browser(app.test_app_data)
+        self.assertRaises(
+            AssertionError,
+            browser.open, 'http://localhost/root.exe',
+            method='GET',
+            form={'position': '42', 'name': 'index'},
+            query={'color': 'blue'})
+        self.assertRaises(
+            AssertionError,
+            browser.open, 'http://localhost/root.exe',
+            method='PUT',
+            form={'position': '42', 'name': 'index'})
 
     def test_disabled_redirect(self):
         browser = Browser(app.TestAppRedirect())
