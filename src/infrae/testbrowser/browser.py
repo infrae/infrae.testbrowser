@@ -9,7 +9,7 @@ import urllib
 import lxml.html
 
 from infrae.testbrowser.wsgi import WSGIServer
-from infrae.testbrowser.form import Form
+from infrae.testbrowser.form import Form, Link
 
 HISTORY_LENGTH = 20
 
@@ -154,6 +154,7 @@ class Browser(object):
         if content_type and (content_type.startswith('text/html') or
                              content_type.startswith('text/xhtml')):
             self.html = lxml.html.document_fromstring(self.contents)
+            self.html.resolve_base_href()
 
     def open(self, url, method='GET', query=None, form=None):
         if self.__response:
@@ -185,3 +186,10 @@ class Browser(object):
         nodes = self.html.xpath('//form[@name="%s"]' % name)
         assert len(nodes) == 1, 'Form element not found'
         return Form(nodes[0], self)
+
+    def get_link(self, content):
+        assert self.html is not None, 'Not viewing HTML'
+        links = self.html.xpath(
+            '//a[contains(normalize-space(text()), "%s")]' % content)
+        assert len(links) == 1, 'No link found'
+        return Link(links[0], self)

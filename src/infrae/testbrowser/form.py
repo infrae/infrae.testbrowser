@@ -16,6 +16,12 @@ class HTMLElement(object):
         return lxml.etree.tostring(self.html, pretty_print=True)
 
 
+class Link(HTMLElement):
+
+    def click(self):
+        return self.browser.open(urllib.unquote(self.html.attrib['href']))
+
+
 class Control(HTMLElement):
 
     def __init__(self, form, html):
@@ -23,22 +29,27 @@ class Control(HTMLElement):
         self.html = html
 
     def __getattr__(self, name):
+        html = self.html
+        multiple = False
+        if isinstance(html, list):
+            html = html[0]
+            multiple = True
         if name in ('name', 'value'):
-            return getattr(self.html, name)
-        if self.html.tag == 'select':
+            return getattr(html, name)
+        if html.tag == 'select':
             if name in ('value_options', 'multiple'):
-                return getattr(self.html, name)
+                return getattr(html, name)
             if name in ('checkable', 'checked'):
                 return False
             if name == 'type':
                 return 'select'
-        if self.html.tag == 'input':
+        if html.tag == 'input':
             if name in ('type', 'checkable', 'checked'):
-                return getattr(self.html, name)
+                return getattr(html, name)
             if name == 'value_options':
                 return []
             if name == 'multiple':
-                return False
+                return multiple
 
     def __setattr__(self, name, value):
         if name == 'value':
@@ -57,12 +68,16 @@ class ButtonControl(Control):
     def submit(self):
         return self.form.submit(self.html.name, self.html.value)
 
+    click = submit
+
 
 class Form(HTMLElement):
 
     def get_control(self, name):
         node = self.html.inputs[name]
-        if node.tag == 'input' and node.get('type', 'submit') == 'submit':
+        if (not isinstance(node, list) and
+            node.tag == 'input' and
+            node.get('type', 'submit') == 'submit'):
             return ButtonControl(self, node)
         return Control(self, node)
 

@@ -3,6 +3,7 @@
 # See also LICENSE.txt
 # $Id$
 
+import os
 
 def test_app_write(environ, start_response):
     write = start_response('200 Ok', (('Content-type', 'text/html'),))
@@ -77,3 +78,17 @@ class TestAppRedirect(object):
             return []
         start_response('200 Ok', (('Content-type', 'text/html'),))
         return ['<html><p>It works!</p></html>']
+
+
+class TestAppTemplate(object):
+
+    def __init__(self, filename):
+        self.filename = os.path.join(
+            os.path.dirname(__file__), 'data', filename)
+
+    def __call__(self, environ, start_response):
+        with open(self.filename, 'r') as data:
+            start_response('200 Ok', (('Content-type', 'text/html')))
+            return [data.read()]
+        start_response('404 Not Found', (('Content-type', 'text/html')))
+        return ['<html>File not found</html>']
