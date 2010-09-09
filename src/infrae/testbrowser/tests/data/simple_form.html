@@ -1,0 +1,16 @@
+<html>
+  <body>
+    <form method="post" action="/submit.html" name="loginform">
+      <input type="text" name="login" value="arthur" />
+      <input type="password" name="password" value="" />
+      <input type="submit" name="save" value="Save" />
+
+      <!-- You can specify submit input more than one time -->
+      <input type="submit" name="save" value="Save" />
+
+      <!-- fields without name are ignored -->
+      <input type="text" value="nothing" />
+      <input type="hidden" value="i confirm nothing nothing" />
+    </form>
+  </body>
+</html>

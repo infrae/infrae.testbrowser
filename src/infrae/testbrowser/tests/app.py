@@ -87,8 +87,11 @@ class TestAppTemplate(object):
             os.path.dirname(__file__), 'data', filename)
 
     def __call__(self, environ, start_response):
+        if environ['REQUEST_METHOD'] == 'POST':
+            start_response('200 Ok', (('Content-type', 'text/html'),))
+            return ['<html><pre>%s</pre></html>' % environ['wsgi.input'].read()]
         with open(self.filename, 'r') as data:
-            start_response('200 Ok', (('Content-type', 'text/html')))
+            start_response('200 Ok', (('Content-type', 'text/html'),))
             return [data.read()]
         start_response('404 Not Found', (('Content-type', 'text/html')))
         return ['<html>File not found</html>']

@@ -57,6 +57,7 @@ class Browser(object):
         self.__data_type = None
         self.__request_headers = dict()
         self.__history = collections.deque([], HISTORY_LENGTH)
+        self.__cache = {}
         self.html = None
 
     @property
@@ -113,6 +114,7 @@ class Browser(object):
         return map(lambda e: e[0], self.__history)
 
     def _query_application(self, url, method, query, data, data_type):
+        self.__cache = {}
         url_info = urlparse.urlparse(url)
         query_string = urllib.urlencode(query) if query else ''
         uri = urlparse.urlunparse(
@@ -191,9 +193,11 @@ class Browser(object):
 
     def get_form(self, name):
         assert self.html is not None, 'Not viewing HTML'
-        nodes = self.html.xpath('//form[@name="%s"]' % name)
-        assert len(nodes) == 1, 'Form element not found'
-        return Form(nodes[0], self)
+        if name not in self.__cache:
+            nodes = self.html.xpath('//form[@name="%s"]' % name)
+            assert len(nodes) == 1, 'Form element not found'
+            self.__cache[name] = Form(nodes[0], self)
+        return self.__cache[name]
 
     def get_link(self, content):
         assert self.html is not None, 'Not viewing HTML'
