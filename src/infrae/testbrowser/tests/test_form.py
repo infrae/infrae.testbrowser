@@ -22,6 +22,16 @@ class FormTestCase(unittest.TestCase):
         self.assertRaises(
             AssertionError, browser.get_form, 'notexisting')
 
+    def test_malformed_form(self):
+        browser = Browser(app.TestAppTemplate('malformed_form.html'))
+        browser.open('/index.html?option=on')
+        form = browser.get_form('malform')
+        # This form has no action. It default to the browser location
+        self.assertEqual(form.name, 'malform')
+        self.assertEqual(form.method, 'POST')
+        self.assertEqual(form.action, '/index.html')
+        self.assertEqual(len(form.controls), 2)
+
     def test_form_cache(self):
         # If you find a form and set a value it must be keept for the
         # opened URL.

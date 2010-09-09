@@ -199,7 +199,7 @@ class Form(HTMLElement):
     def __init__(self, html, browser):
         super(Form, self).__init__(html, browser)
         self.name = html.get('name', '')
-        self.action = urllib.unquote(html.action)
+        self.action = urllib.unquote(html.get('action', browser.location))
         self.method = html.get('method', 'POST').upper()
         self.controls = {}
         self.__control_names = []

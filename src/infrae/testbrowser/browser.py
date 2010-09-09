@@ -110,6 +110,12 @@ class Browser(object):
         self.set_request_header('Authorization', format_auth(user, password))
 
     @property
+    def location(self):
+        if self.__url:
+            return urlparse.urlparse(self.__url).path
+        return None
+
+    @property
     def history(self):
         return map(lambda e: e[0], self.__history)
 
@@ -201,7 +207,9 @@ class Browser(object):
 
     def get_link(self, content):
         assert self.html is not None, 'Not viewing HTML'
-        links = self.html.xpath(
-            '//a[contains(normalize-space(text()), "%s")]' % content)
-        assert len(links) == 1, 'No link found'
-        return Link(links[0], self)
+        urls = {}
+        for link in self.html.xpath(
+            '//a[contains(normalize-space(text()), "%s")]' % content):
+            urls[link.attrib['href']] = link
+        assert len(urls) == 1, 'No link found'
+        return Link(urls.values()[0], self)

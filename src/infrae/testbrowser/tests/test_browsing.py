@@ -129,6 +129,7 @@ class BrowsingTestCase(unittest.TestCase):
         browser.login('user', 'password')
         browser.open('http://localhost/index.html')
         self.assertEqual(browser.url, '/index.html')
+        self.assertEqual(browser.location, '/index.html')
         self.assertEqual(browser.status, '200 Ok')
         self.assertNotEqual(browser.html, None)
         self.assertEqual(
@@ -165,6 +166,7 @@ class BrowsingTestCase(unittest.TestCase):
 
         browser.reload()
         self.assertEqual(browser.url, '/root.html')
+        self.assertEqual(browser.location, '/root.html')
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(
             browser.contents,
@@ -176,6 +178,7 @@ class BrowsingTestCase(unittest.TestCase):
         browser.open('http://localhost/root.html',
                      query={'position': '42', 'name': 'index'})
         self.assertEqual(browser.url, '/root.html?position=42&name=index')
+        self.assertEqual(browser.location, '/root.html')
         self.assertEqual(browser.status, '200 Ok')
         self.assertNotEqual(browser.html, None)
         self.assertEqual(
@@ -196,6 +199,7 @@ class BrowsingTestCase(unittest.TestCase):
                      method='POST',
                      form={'position': '42', 'name': 'index'})
         self.assertEqual(browser.url, '/root.exe')
+        self.assertEqual(browser.location, '/root.exe')
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(browser.method, 'POST')
         self.assertNotEqual(browser.html, None)
