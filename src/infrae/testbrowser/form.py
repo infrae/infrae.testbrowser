@@ -87,10 +87,11 @@ class Control(object):
                         raise AssertionError(u"Invalid choice %s" % subvalue)
             else:
                 if isinstance(value, int):
-                    value = str(int)
+                    value = str(value)
                 assert (isinstance(value, basestring) or
                         isinstance(value, bool)), \
-                        u'Invalid value type set for control %r' % value
+                        u'Invalid value type %s set for control %r' % (
+                            type(value).__name__, value)
                 if self.__options:
                     if value not in self.__options:
                         raise AssertionError(u"Invalid choice %s" % value)
