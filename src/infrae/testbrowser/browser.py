@@ -8,8 +8,9 @@ import urlparse
 import urllib
 import lxml.html
 
+from infrae.testbrowser.expressions import Expressions, ExpressionLinks, Link
+from infrae.testbrowser.form import Form
 from infrae.testbrowser.wsgi import WSGIServer
-from infrae.testbrowser.form import Form, Link
 
 HISTORY_LENGTH = 20
 
@@ -18,30 +19,9 @@ def format_auth(user, password):
     return 'Basic ' + ':'.join((user, password)).encode('base64').strip()
 
 
-def node_to_text(node):
-    return node.text_content().strip()
-
-
 class Options(object):
     follow_redirect = True
     cookie_support = True
-
-
-class Expressions(object):
-
-    def __init__(self, browser):
-        self.__browser = browser
-        self.__expressions = {}
-
-    def add(self, name, xpath):
-        self.__expressions[name] = xpath
-
-    def __getattr__(self, name):
-        expression = self.__expressions.get(name)
-        if expression:
-            assert self.__browser.html is not None, u'Not viewing HTML'
-            return map(node_to_text, self.__browser.html.xpath(expression))
-        raise AttributeError(name)
 
 
 class Browser(object):
@@ -50,6 +30,7 @@ class Browser(object):
         self.__server = WSGIServer(app)
         self.options = Options()
         self.inspect = Expressions(self)
+        self.links = ExpressionLinks(self)
         self.__url = None
         self.__method = None
         self.__response = None

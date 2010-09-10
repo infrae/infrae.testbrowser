@@ -44,7 +44,7 @@ class WSGIServer(object):
 
     def __init__(self, app):
         self.__app = app
-        self.handle_errors = False
+        self.handle_errors = True
 
     def get_default_environ(self):
         environ = {}

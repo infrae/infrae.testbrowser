@@ -6,22 +6,6 @@
 import urllib
 import lxml.etree
 
-class HTMLElement(object):
-
-    def __init__(self, html, browser):
-        self.browser = browser
-        self.html = html
-
-    def __str__(self):
-        return lxml.etree.tostring(self.html, pretty_print=True)
-
-
-class Link(HTMLElement):
-
-    def click(self):
-        url = urllib.unquote(self.html.attrib['href'])
-        return self.browser.open(url)
-
 
 class Control(object):
 
@@ -171,6 +155,14 @@ class Control(object):
             return [(self.name, value) for value in self.value]
         return [(self.name, self.value)]
 
+    def __str__(self):
+        if isinstance(self.html, list):
+            html = self.html
+        else:
+            html = [self.html]
+        return '\n'.join(
+            map(lambda h:lxml.etree.tostring(h, pretty_print=True), html))
+
 
 class ButtonControl(Control):
 
@@ -194,10 +186,11 @@ FORM_ELEMENT_IMPLEMENTATION = {
     'submit': ButtonControl}
 
 
-class Form(HTMLElement):
+class Form(object):
 
     def __init__(self, html, browser):
-        super(Form, self).__init__(html, browser)
+        self.browser = browser
+        self.html = html
         self.name = html.get('name', '')
         self.action = urllib.unquote(html.get('action', browser.location))
         self.method = html.get('method', 'POST').upper()
@@ -268,3 +261,6 @@ class Form(HTMLElement):
             form.extend(control._submit_data())
         return self.browser.open(
             self.action, method=self.method, form=form)
+
+    def __str__(self):
+        return lxml.etree.tostring(self.html, pretty_print=True)
