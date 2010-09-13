@@ -8,7 +8,7 @@ import urlparse
 import urllib
 import lxml.html
 
-from infrae.testbrowser.expressions import Expressions, ExpressionLinks, Link
+from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
 from infrae.testbrowser.wsgi import WSGIServer
 
@@ -30,7 +30,6 @@ class Browser(object):
         self.__server = WSGIServer(app)
         self.options = Options()
         self.inspect = Expressions(self)
-        self.links = ExpressionLinks(self)
         self.__url = None
         self.__method = None
         self.__response = None

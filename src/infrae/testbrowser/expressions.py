@@ -4,27 +4,22 @@
 # $Id$
 
 import urllib
+from collections import defaultdict
 
 
 def node_to_text(node):
     return node.text_content().strip()
 
+def node_to_node(node):
+    return node
 
-class Expressions(object):
+def none_filter(node):
+    return True
 
-    def __init__(self, browser):
-        self.__browser = browser
-        self.__expressions = {}
-
-    def add(self, name, xpath):
-        self.__expressions[name] = xpath
-
-    def __getattr__(self, name):
-        expression = self.__expressions.get(name)
-        if expression:
-            assert self.__browser.html is not None, u'Not viewing HTML'
-            return map(node_to_text, self.__browser.html.xpath(expression))
-        raise AttributeError(name)
+def tag_filter(name):
+    def node_filter(node):
+        return node.tag == name
+    return node_filter
 
 
 class Link(object):
@@ -32,6 +27,7 @@ class Link(object):
     def __init__(self, html, browser):
         self.html = html
         self.browser = browser
+        self.title = html.text_content()
 
     @property
     def url(self):
@@ -40,26 +36,24 @@ class Link(object):
     def click(self):
         return self.browser.open(self.url)
 
+    def __str__(self):
+        return self.title
+
+    def __repr__(self):
+        return repr(self.title)
+
 
 class Links(object):
 
     def __init__(self, links, browser):
         self.__browser = browser
-        self.__links = links
+        self.__links = map(lambda link: Link(link, browser), links)
 
     def keys(self):
-        return map(node_to_text, self.__links)
+        return map(str, self.__links)
 
     def values(self):
-        return map(lambda l: Link(l, self.__browser), self.__links)
-
-    def __getitem__(self, key):
-        matches = filter(lambda l: key in l.text_content(), self.__links)
-        if not matches:
-            raise KeyError(key)
-        if len(matches) == 1:
-            return Link(matches[0], self.__browser)
-        raise AssertionError("Multiple matches (%d)" % len(matches), matches)
+        return list(self.__links)
 
     def get(self, key, default=None):
         try:
@@ -67,21 +61,64 @@ class Links(object):
         except KeyError:
             return default
 
+    def __getitem__(self, key):
+        key = key.lower()
+        matches = filter(lambda l: key in str(l).lower(), self.__links)
+        if not matches:
+            raise KeyError(key)
+        if len(matches) == 1:
+            return matches[0]
+        raise AssertionError(
+            "Multiple matches (%d)" % len(matches), map(str, matches))
 
-class ExpressionLinks(object):
+    def __contains__(self, key):
+        try:
+            self.__getitem__(key)
+            return True
+        except (KeyError, AssertionError):
+            return False
+
+    def __len__(self):
+        return len(self.__links)
+
+    def __eq__(self, other):
+        if isinstance(other, Links):
+            other = other.keys()
+        return self.keys() == other
+
+    def __ne__(self, other):
+        import pdb; pdb.set_trace()
+        if isinstance(other, Links):
+            other = other.keys()
+        return self.keys() != other
+
+    def __repr__(self):
+        return repr(map(str, self.__links))
+
+
+EXPRESSION_TYPE = {
+    'text': (node_to_text, none_filter, lambda nodes, browser: list(nodes)),
+    'link': (node_to_node, tag_filter('a'), Links),
+    }
+
+
+class Expressions(object):
 
     def __init__(self, browser):
         self.__browser = browser
-        self.__links = {}
+        self.__expressions = defaultdict(lambda: tuple((None, None)))
 
-    def add(self, name, xpath):
-        self.__links[name] = xpath
+    def add(self, name, xpath, type='text'):
+        assert type in EXPRESSION_TYPE, u'Unknown expression type %s' % type
+        self.__expressions[name] = (xpath, type)
 
     def __getattr__(self, name):
-        expression = self.__links[name]
-        if expression:
+        expression, type = self.__expressions[name]
+        if expression is not None:
             assert self.__browser.html is not None, u'Not viewing HTML'
-            links = filter(lambda l: l.tag == 'a',
-                           self.__browser.html.xpath(expression))
-            return Links(links, self.__browser)
+            node_converter, node_filter, factory = EXPRESSION_TYPE[type]
+            return factory(filter(node_filter,
+                                  map(node_converter,
+                                      self.__browser.html.xpath(expression))),
+                           self.__browser)
         raise AttributeError(name)
