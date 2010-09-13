@@ -9,15 +9,12 @@ import lxml.html
 import urllib
 import urlparse
 
+from infrae.testbrowser.utils import encode_multipart_form_data, format_auth
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
 from infrae.testbrowser.wsgi import WSGIServer
 
 HISTORY_LENGTH = 20
-
-
-def format_auth(user, password):
-    return 'Basic ' + ':'.join((user, password)).encode('base64').strip()
 
 
 class Options(object):
@@ -162,7 +159,8 @@ class Browser(object):
             self.html = lxml.html.document_fromstring(self.contents)
             self.html.resolve_base_href()
 
-    def open(self, url, method='GET', query=None, form=None):
+    def open(self, url, method='GET', query=None,
+             form=None, form_enctype='application/x-www-form-urlencoded'):
         if self.__response:
             self.__history.append(
                 (self.__url, self.__method, self.__response))
@@ -174,14 +172,22 @@ class Browser(object):
         if form is not None:
             # We posted a form
             if method == 'GET':
+                assert form_enctype == 'application/x-www-form-urlencoded', \
+                    u'Invalid form encoding for GET method'
                 if query is not None:
                     raise AssertionError(
-                        u'Cannot handle aquery with a GET form')
+                        u'Cannot handle a query with a GET form')
                 query = form
             else:
                 assert method == 'POST', u'Only support POST or GET forms'
-                data = urllib.urlencode(form)
-                data_type = 'application/x-www-form-urlencoded'
+                if form_enctype == 'application/x-www-form-urlencoded':
+                    data_type = 'application/x-www-form-urlencoded'
+                    data = urllib.urlencode(form)
+                elif form_enctype == 'multipart/form-data':
+                    data_type, data = encode_multipart_form_data(form)
+                else:
+                    raise AssertionError(
+                        u"Unsupported form encoding %s" % form_enctype)
         self.__data = data
         self.__data_type = data_type
         self._query_application(url, method, query, data, data_type)

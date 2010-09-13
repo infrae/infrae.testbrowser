@@ -5,7 +5,9 @@
 
 import unittest
 import operator
+import os.path
 
+from infrae.testbrowser.utils import File
 from infrae.testbrowser.browser import Browser
 from infrae.testbrowser.tests import app
 
@@ -220,6 +222,59 @@ class BrowsingTestCase(unittest.TestCase):
              'content length:22',
              'position=42&name=index'])
 
+    def test_form_post_multipart(self):
+        browser = Browser(app.test_app_data)
+        browser.open('http://localhost/root.exe',
+                     method='POST',
+                     form={'position': '42', 'name': 'index'},
+                     form_enctype='multipart/form-data')
+        self.assertEqual(browser.url, '/root.exe')
+        self.assertEqual(browser.location, '/root.exe')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.method, 'POST')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['content type:multipart/form-data; '
+             'boundary=------------uCtemt3iWu00F3QDhiwZ2nIQ$',
+             'content length:234',
+             '--------------uCtemt3iWu00F3QDhiwZ2nIQ$\r\n'
+             'Content-Disposition: form-data; name="position"\r\n\r\n42\r\n'
+             '--------------uCtemt3iWu00F3QDhiwZ2nIQ$\r\n'
+             'Content-Disposition: form-data; name="name"\r\n\r\nindex\r\n'
+             '--------------uCtemt3iWu00F3QDhiwZ2nIQ$--\r\n'])
+
+        browser.reload()
+        self.assertEqual(browser.url, '/root.exe')
+        self.assertEqual(browser.location, '/root.exe')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.method, 'POST')
+
+    def test_form_post_multipart_file(self):
+        browser = Browser(app.test_app_data)
+        filename = os.path.join(os.path.dirname(__file__), 'data', 'readme.txt')
+        browser.open('http://localhost/root.exe',
+                     method='POST',
+                     form={'name': 'index', 'file': File(filename)},
+                     form_enctype='multipart/form-data')
+        self.assertEqual(browser.url, '/root.exe')
+        self.assertEqual(browser.location, '/root.exe')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.method, 'POST')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['content type:multipart/form-data; '
+             'boundary=------------uCtemt3iWu00F3QDhiwZ2nIQ$',
+             'content length:389',
+             '--------------uCtemt3iWu00F3QDhiwZ2nIQ$\r\n'
+             'Content-Disposition: form-data; name="name"\r\n\r\nindex\r\n'
+             '--------------uCtemt3iWu00F3QDhiwZ2nIQ$\r\n'
+             'Content-Disposition: form-data; name="file"; filename="%s"\r\n'
+             'Content-Type: text/plain\r\n\r\n'
+             'You should readme.\nNow.\n\r\n'
+             '--------------uCtemt3iWu00F3QDhiwZ2nIQ$--\r\n' % filename])
+
     def test_form_get(self):
         browser = Browser(app.test_app_data)
         browser.open('http://localhost/root.exe',
@@ -252,6 +307,18 @@ class BrowsingTestCase(unittest.TestCase):
             method='GET',
             form={'position': '42', 'name': 'index'},
             query={'color': 'blue'})
+        self.assertRaises(
+            AssertionError,
+            browser.open, 'http://localhost/root.exe',
+            method='GET',
+            form={'position': '42', 'name': 'index'},
+            form_enctype='multipart/form-data')
+        self.assertRaises(
+            AssertionError,
+            browser.open, 'http://localhost/root.exe',
+            method='POST',
+            form={'position': '42', 'name': 'index'},
+            form_enctype='x-unknown/ultra-part')
         self.assertRaises(
             AssertionError,
             browser.open, 'http://localhost/root.exe',

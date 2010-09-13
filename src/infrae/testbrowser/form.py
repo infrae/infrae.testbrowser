@@ -189,12 +189,13 @@ FORM_ELEMENT_IMPLEMENTATION = {
 class Form(object):
 
     def __init__(self, html, browser):
-        self.browser = browser
         self.html = html
         self.name = html.get('name', '')
         self.action = urllib.unquote(html.get('action', browser.location))
         self.method = html.get('method', 'POST').upper()
+        self.enctype = html.get('enctype', 'application/x-www-form-urlencoded')
         self.controls = {}
+        self.__browser = browser
         self.__control_names = []
         self.__populate_controls()
 
@@ -259,8 +260,9 @@ class Form(object):
         for name in self.__control_names:
             control = self.controls[name]
             form.extend(control._submit_data())
-        return self.browser.open(
-            self.action, method=self.method, form=form)
+        return self.__browser.open(
+            self.action, method=self.method,
+            form=form, form_enctype=self.enctype)
 
     def __str__(self):
         return lxml.etree.tostring(self.html, pretty_print=True)
