@@ -6,6 +6,7 @@
 import urllib
 import lxml.etree
 
+from infrae.testbrowser.utils import File
 
 class Control(object):
 
@@ -153,6 +154,8 @@ class Control(object):
                 return [(self.name, 'checked')]
         elif self.multiple:
             return [(self.name, value) for value in self.value]
+        if self.type in ['file']:
+            return [(self.name, File(self.value))]
         return [(self.name, self.value)]
 
     def __str__(self):
