@@ -27,7 +27,7 @@ class Link(object):
     def __init__(self, html, browser):
         self.html = html
         self.browser = browser
-        self.title = html.text_content()
+        self.text = html.text_content()
 
     @property
     def url(self):
@@ -37,10 +37,10 @@ class Link(object):
         return self.browser.open(self.url)
 
     def __str__(self):
-        return self.title
+        return self.text
 
     def __repr__(self):
-        return repr(self.title)
+        return repr(self.text)
 
 
 class Links(object):

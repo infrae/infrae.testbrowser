@@ -74,7 +74,7 @@ class ExpressionsTestCase(unittest.TestCase):
         self.assertFalse('download' in links)
 
         self.assertEqual(repr(links['contact']), repr('Contact'))
-        self.assertEqual(links['contact'].title, 'Contact')
+        self.assertEqual(links['contact'].text, 'Contact')
         self.assertEqual(links['contact'].url, '/contact.html')
         self.assertEqual(links['contact'].click(), 200)
 

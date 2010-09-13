@@ -4,9 +4,10 @@
 # $Id$
 
 import collections
-import urlparse
-import urllib
+import functools
 import lxml.html
+import urllib
+import urlparse
 
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
@@ -24,12 +25,29 @@ class Options(object):
     cookie_support = True
 
 
+class Macros(object):
+
+    def __init__(self, browser):
+        self.__browser = browser
+        self.__macros = {}
+
+    def add(self, name, macro):
+        self.__macros[name] = functools.partial(macro, self.__browser)
+
+    def __getattr__(self, name):
+        macro = self.__macros.get(name)
+        if macro is not None:
+            return macro
+        raise AttributeError(name)
+
+
 class Browser(object):
 
     def __init__(self, app):
         self.__server = WSGIServer(app)
         self.options = Options()
         self.inspect = Expressions(self)
+        self.macros = Macros(self)
         self.__url = None
         self.__method = None
         self.__response = None
