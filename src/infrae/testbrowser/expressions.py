@@ -87,7 +87,6 @@ class Links(object):
         return self.keys() == other
 
     def __ne__(self, other):
-        import pdb; pdb.set_trace()
         if isinstance(other, Links):
             other = other.keys()
         return self.keys() != other
