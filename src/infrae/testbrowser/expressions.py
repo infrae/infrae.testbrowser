@@ -4,6 +4,7 @@
 # $Id$
 
 import urllib
+from lxml import etree
 from collections import defaultdict
 
 
@@ -109,7 +110,7 @@ class Expressions(object):
 
     def add(self, name, xpath, type='text'):
         assert type in EXPRESSION_TYPE, u'Unknown expression type %s' % type
-        self.__expressions[name] = (xpath, type)
+        self.__expressions[name] = (etree.XPath(xpath), type)
 
     def __getattr__(self, name):
         expression, type = self.__expressions[name]
@@ -118,6 +119,6 @@ class Expressions(object):
             node_converter, node_filter, factory = EXPRESSION_TYPE[type]
             return factory(filter(node_filter,
                                   map(node_converter,
-                                      self.__browser.html.xpath(expression))),
+                                      expression(self.__browser.html))),
                            self.__browser)
         raise AttributeError(name)
