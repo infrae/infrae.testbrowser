@@ -92,6 +92,21 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
         self.assertNotEqual(browser.html, None)
 
+    def test_iterator_fragment(self):
+        browser = Browser(app.test_app_iter)
+        browser.open('/index.html#Bottom', method='GET')
+        self.assertEqual(browser.url, '/index.html#Bottom')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.status_code, 200)
+        self.assertEqual(
+            browser.contents,
+            '<html><ul>'
+            '<li>SERVER: http://localhost:80/</li>'
+            '<li>METHOD: GET</li>'
+            '<li>URL: /index.html</li>'
+            '</ul></html>')
+
     def test_text(self):
         browser = Browser(app.test_app_text)
         browser.open('/readme.txt')

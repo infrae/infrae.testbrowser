@@ -68,6 +68,8 @@ class WSGIServer(object):
         environ['SCRIPT_NAME'] = ''
         if '?' in uri:
             uri, query = uri.split('?', 1)
+        if '#' in uri:
+            uri, _ = uri.split('#', 1)
         environ['PATH_INFO'] = uri
         environ['QUERY_STRING'] = query
         if data is not None and data_type is not None:
