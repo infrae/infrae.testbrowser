@@ -98,6 +98,9 @@ class Browser(object):
     def set_request_header(self, key, value):
         self.__request_headers[key] = value
 
+    def get_request_header(self, key):
+        return self.__request_headers.get(key)
+
     def clear_request_headers(self):
         self.__request_headers = dict()
 
@@ -140,7 +143,7 @@ class Browser(object):
         if self.options.cookie_support:
             cookie = self.headers.get('Set-Cookie')
             if cookie:
-                self.set_request_header('Cookie', cookie)
+                self.set_request_header('Cookie', cookie.split(';', 1)[0])
 
         # Redirect
         if (self.status_code in (301, 302, 303) and

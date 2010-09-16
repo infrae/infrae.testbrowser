@@ -6,7 +6,8 @@
 import urllib
 import lxml.etree
 
-from infrae.testbrowser.utils import File
+from infrae.testbrowser.utils import File, resolve_url
+
 
 class Control(object):
 
@@ -194,7 +195,11 @@ class Form(object):
     def __init__(self, html, browser):
         self.html = html
         self.name = html.get('name', '')
-        self.action = urllib.unquote(html.get('action', browser.location))
+        base_action = html.get('action')
+        if base_action:
+            self.action = resolve_url(base_action, browser)
+        else:
+            self.action = browser.location
         self.method = html.get('method', 'POST').upper()
         self.enctype = html.get('enctype', 'application/x-www-form-urlencoded')
         self.controls = {}

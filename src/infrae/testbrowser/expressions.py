@@ -3,10 +3,10 @@
 # See also LICENSE.txt
 # $Id$
 
-import urllib
 from lxml import etree
 from collections import defaultdict
 
+from infrae.testbrowser.utils import resolve_url
 
 def node_to_text(node):
     return node.text_content().strip()
@@ -28,11 +28,11 @@ class Link(object):
     def __init__(self, html, browser):
         self.html = html
         self.browser = browser
-        self.text = html.text_content()
+        self.text = html.text_content().strip()
 
     @property
     def url(self):
-        return urllib.unquote(self.html.attrib['href'])
+        return resolve_url(self.html.attrib['href'], self.browser)
 
     def click(self):
         return self.browser.open(self.url)

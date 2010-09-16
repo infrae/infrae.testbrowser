@@ -3,7 +3,19 @@
 # See also LICENSE.txt
 # $Id$
 
+import urlparse
+import urllib
 import mimetypes
+
+
+def resolve_url(link, browser):
+    parsed = urlparse.urlparse(urllib.unquote(link))
+    if not parsed.path.startswith('/'):
+        # Be sure to always not have any relative links
+        parsed = list(parsed)
+        base = '/'.join(browser.location.split('/')[:-1])
+        parsed[2] = '/'.join((base, parsed[2]))
+    return urlparse.urlunparse(parsed)
 
 def format_auth(user, password):
     return 'Basic ' + ':'.join((user, password)).encode('base64').strip()

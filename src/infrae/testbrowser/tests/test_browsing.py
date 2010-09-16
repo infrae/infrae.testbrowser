@@ -156,6 +156,7 @@ class BrowsingTestCase(unittest.TestCase):
     def test_set_and_headers(self):
         browser = Browser(app.test_app_headers)
         browser.set_request_header('Accept', 'text/html')
+        self.assertEqual(browser.get_request_header('Accept'), 'text/html')
         browser.set_request_header('If-Modified-Since', 'Now')
         browser.open('http://localhost/index.html')
         self.assertEqual(browser.url, '/index.html')

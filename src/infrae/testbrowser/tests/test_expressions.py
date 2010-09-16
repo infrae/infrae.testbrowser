@@ -62,6 +62,9 @@ class ExpressionsTestCase(unittest.TestCase):
         self.assertEqual(
             repr(browser.inspect.navigation),
             repr(['Home', 'Contact', 'python']))
+        self.assertEqual(
+            map(lambda l: l.url, browser.inspect.navigation.values()),
+            ['/home.html', '/contact.html', '/development/python.html'])
 
         self.assertEqual(
             browser.inspect.breadcrumbs.keys(),
