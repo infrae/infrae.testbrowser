@@ -42,9 +42,9 @@ class WSGIServer(object):
     port = '80'
     protocol = 'HTTP/1.0'
 
-    def __init__(self, app):
+    def __init__(self, app, options):
         self.__app = app
-        self.handle_errors = True
+        self.options = options
 
     def get_default_environ(self):
         environ = {}
@@ -58,7 +58,7 @@ class WSGIServer(object):
         environ['wsgi.multithread'] = False
         environ['wsgi.multiprocess'] = False
         environ['wsgi.run_once'] = False
-        environ['wsgi.handleErrors'] = self.handle_errors
+        environ['wsgi.handleErrors'] = self.options.handle_errors
         return environ
 
     def get_environ(self, method, uri, headers, data=None, data_type=None):

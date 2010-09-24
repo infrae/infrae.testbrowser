@@ -20,6 +20,7 @@ HISTORY_LENGTH = 20
 class Options(object):
     follow_redirect = True
     cookie_support = True
+    handle_errors = True
 
 
 class Macros(object):
@@ -41,10 +42,10 @@ class Macros(object):
 class Browser(object):
 
     def __init__(self, app):
-        self.__server = WSGIServer(app)
         self.options = Options()
         self.inspect = Expressions(self)
         self.macros = Macros(self)
+        self.__server = WSGIServer(app, self.options)
         self.__url = None
         self.__method = None
         self.__response = None
