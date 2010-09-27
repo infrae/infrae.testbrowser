@@ -55,6 +55,11 @@ def test_app_data(environ, start_response):
             '<li>%s</li></ul></html>' % environ['wsgi.input'].read()]
 
 
+def test_app_empty(environ, start_response):
+    start_response('200 Ok', (('Content-type', 'text/html'),))
+    return []
+
+
 class TestAppCount(object):
 
     def __init__(self):

@@ -107,6 +107,19 @@ class BrowsingTestCase(unittest.TestCase):
             '<li>URL: /index.html</li>'
             '</ul></html>')
 
+    def test_iterator_empty(self):
+        browser = Browser(app.test_app_empty)
+        browser.open('/index.html')
+        self.assertEqual(browser.url, '/index.html')
+        self.assertEqual(browser.method, 'GET')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.status_code, 200)
+        self.assertEqual(browser.contents, '')
+        self.assertEqual(browser.headers, {'content-type': 'text/html'})
+        self.assertEqual(browser.content_type, 'text/html')
+        self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
+        self.assertEqual(browser.html, None)
+
     def test_text(self):
         browser = Browser(app.test_app_text)
         browser.open('/readme.txt')

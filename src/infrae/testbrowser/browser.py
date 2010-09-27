@@ -160,8 +160,10 @@ class Browser(object):
         content_type = self.content_type
         if content_type and (content_type.startswith('text/html') or
                              content_type.startswith('text/xhtml')):
-            self.html = lxml.html.document_fromstring(self.contents)
-            self.html.resolve_base_href()
+            contents = self.contents
+            if contents:
+                self.html = lxml.html.document_fromstring(contents)
+                self.html.resolve_base_href()
 
     def open(self, url, method='GET', query=None,
              form=None, form_enctype='application/x-www-form-urlencoded'):
