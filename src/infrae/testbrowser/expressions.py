@@ -3,6 +3,7 @@
 # See also LICENSE.txt
 # $Id$
 
+import operator
 from lxml import etree
 from collections import defaultdict
 
@@ -48,13 +49,14 @@ class Links(object):
 
     def __init__(self, links, browser):
         self.__browser = browser
-        self.__links = map(lambda link: Link(link, browser), links)
+        self.__links = map(lambda link: (str(link).lower(), str(link), link),
+                           map(lambda link: Link(link, browser), links))
 
     def keys(self):
-        return map(str, self.__links)
+        return map(operator.itemgetter(1), self.__links)
 
     def values(self):
-        return list(self.__links)
+        return list(map(operator.itemgetter(2), self.__links))
 
     def get(self, key, default=None):
         try:
@@ -64,11 +66,14 @@ class Links(object):
 
     def __getitem__(self, key):
         key = key.lower()
-        matches = filter(lambda l: key in str(l).lower(), self.__links)
+        matches = filter(lambda link: key in link[0], self.__links)
         if not matches:
             raise KeyError(key)
         if len(matches) == 1:
-            return matches[0]
+            return matches[0][2]
+        exact_matches = filter(lambda link: key == link[0], matches)
+        if len(exact_matches) == 1:
+            return exact_matches[0][2]
         raise AssertionError(
             "Multiple matches (%d)" % len(matches), map(str, matches))
 
@@ -93,7 +98,7 @@ class Links(object):
         return self.keys() != other
 
     def __repr__(self):
-        return repr(map(str, self.__links))
+        return repr(map(operator.itemgetter(1), self.__links))
 
 
 EXPRESSION_TYPE = {

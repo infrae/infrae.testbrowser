@@ -52,7 +52,7 @@ class ExpressionsTestCase(unittest.TestCase):
         browser.open('/development/lisp.html')
         self.assertEqual(
             browser.inspect.navigation,
-            ['Home', 'Contact', 'python'])
+            ['Home', 'Contact', 'Contact Abroad', 'python'])
         self.assertEqual(
             browser.inspect.breadcrumbs,
             ['Home ...', 'Development ...', 'Advanced Lisp ...'])
@@ -61,10 +61,11 @@ class ExpressionsTestCase(unittest.TestCase):
             ['Home', 'python'])
         self.assertEqual(
             repr(browser.inspect.navigation),
-            repr(['Home', 'Contact', 'python']))
+            repr(['Home', 'Contact', 'Contact Abroad', 'python']))
         self.assertEqual(
             map(lambda l: l.url, browser.inspect.navigation.values()),
-            ['/home.html', '/contact.html', '/development/python.html'])
+            ['/home.html', '/contact.html',
+             '/contact_abroad.html', '/development/python.html'])
 
         self.assertEqual(
             browser.inspect.breadcrumbs.keys(),
