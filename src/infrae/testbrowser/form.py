@@ -3,7 +3,9 @@
 # See also LICENSE.txt
 # $Id$
 
-import urllib
+import operator
+import functools
+import codecs
 import lxml.etree
 
 from infrae.testbrowser.utils import File, resolve_url
@@ -147,17 +149,17 @@ class Control(object):
         self.__options.append(value)
         self.html.append(html)
 
-    def _submit_data(self):
+    def _submit_data(self, encoder):
         if self.checkable:
             if not self.checked:
                 return []
             if not self.value:
                 return [(self.name, 'checked')]
         elif self.multiple:
-            return [(self.name, value) for value in self.value]
+            return [(self.name, encoder(value)) for value in self.value]
         if self.type in ['file']:
             return [(self.name, File(self.value))]
-        return [(self.name, self.value)]
+        return [(self.name, encoder(self.value))]
 
     def __str__(self):
         if isinstance(self.html, list):
@@ -180,14 +182,39 @@ class ButtonControl(Control):
 
     click = submit
 
-    def _submit_data(self):
+    def _submit_data(self, encoder):
         if not self.__selected:
             return []
-        return [(self.name, self.value)]
+        return [(self.name, encoder(self.value))]
 
 
 FORM_ELEMENT_IMPLEMENTATION = {
-    'submit': ButtonControl}
+    'submit': ButtonControl,
+    'image': ButtonControl}
+
+
+def parse_charset(charsets):
+    """Parse form accept charset and return a list of charset that can
+    be used in Python.
+    """
+    def validate_charset(charset):
+        try:
+            codecs.lookup(charset)
+        except LookupError:
+            return False
+        return True
+
+    return filter(validate_charset,
+                  reduce(operator.add,
+                         map(lambda c: c.split(), charsets.split(','))))
+
+
+def charset_encoder(charset, value):
+    """Encoder a value in the given charset.
+    """
+    if isinstance(value, unicode):
+        return value.encode(charset, 'ignore')
+    return str(value)
 
 
 class Form(object):
@@ -202,6 +229,7 @@ class Form(object):
             self.action = browser.location
         self.method = html.get('method', 'POST').upper()
         self.enctype = html.get('enctype', 'application/x-www-form-urlencoded')
+        self.accept_charset = parse_charset(html.get('accept-charset', 'utf-8'))
         self.controls = {}
         self.__browser = browser
         self.__control_names = []
@@ -261,13 +289,14 @@ class Form(object):
 
     def submit(self, name=None, value=None):
         form = []
+        encoder = functools.partial(charset_encoder, self.accept_charset[0])
         if name is not None:
             if value is None:
                 value = self.controls[name].value
             form.append((name, value))
         for name in self.__control_names:
             control = self.controls[name]
-            form.extend(control._submit_data())
+            form.extend(control._submit_data(encoder))
         return self.__browser.open(
             self.action, method=self.method,
             form=form, form_enctype=self.enctype)
