@@ -15,6 +15,7 @@ from infrae.testbrowser.form import Form
 from infrae.testbrowser.wsgi import WSGIServer
 
 HISTORY_LENGTH = 20
+_marker = object()
 
 
 class Options(object):
@@ -105,7 +106,9 @@ class Browser(object):
     def clear_request_headers(self):
         self.__request_headers = dict()
 
-    def login(self, user, password):
+    def login(self, user, password=_marker):
+        if password is _marker:
+            password = user
         self.set_request_header('Authorization', format_auth(user, password))
 
     @property
