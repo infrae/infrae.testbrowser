@@ -3,13 +3,26 @@
 # See also LICENSE.txt
 # $Id$
 
+import os.path
 import unittest
 
 from infrae.testbrowser.tests import app
 from infrae.testbrowser.browser import Browser
+from infrae.testbrowser.form import parse_charset
 
 
 class FormTestCase(unittest.TestCase):
+
+    def test_parse_charset(self):
+        self.assertEqual(
+            parse_charset('utf-8'),
+            ['utf-8'])
+        self.assertEqual(
+            parse_charset('utf-8,latin-1 ISO-8859-1 , invalid'),
+            ['utf-8', 'iso8859-1'])
+        self.assertEqual(
+            parse_charset('invalid ,, invalid utf8'),
+            ['utf-8'])
 
     def test_get_form(self):
         browser = Browser(app.test_app_text)
@@ -309,6 +322,33 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(
             browser.html.xpath('//pre/text()'),
             ['adapter=Yes&send=Send'])
+
+    def test_file_input(self):
+        browser = Browser(app.TestAppTemplate('file_form.html'))
+        browser.open('/index.html')
+        form = browser.get_form('feedbackform')
+        self.assertNotEqual(form, None)
+        self.assertEqual(len(form.controls), 2)
+
+        file_field = form.get_control('document')
+        self.assertNotEqual(file_field, None)
+        self.assertEqual(file_field.value, '')
+        self.assertEqual(file_field.type, 'file')
+        self.assertEqual(file_field.multiple, False)
+        self.assertEqual(file_field.checkable, False)
+        self.assertEqual(file_field.checked, False)
+        self.assertEqual(file_field.options, [])
+
+        file_field.value = os.path.join(
+            os.path.dirname(__file__), 'data', 'readme.txt')
+
+        submit_field = form.get_control('send')
+        self.assertEqual(submit_field.submit(), 200)
+        self.assertEqual(browser.url, '/submit.html')
+        self.assertEqual(browser.method, 'POST')
+        self.assertEqual(
+            browser.html.xpath('//pre/text()'),
+            ['document=You+should+readme.%0ANow.%0A&send=Send'])
 
 
 def test_suite():

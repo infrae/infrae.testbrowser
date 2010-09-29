@@ -197,16 +197,25 @@ def parse_charset(charsets):
     """Parse form accept charset and return a list of charset that can
     be used in Python.
     """
-    def validate_charset(charset):
-        try:
-            codecs.lookup(charset)
-        except LookupError:
-            return False
-        return True
+    seen = set()
 
-    return filter(validate_charset,
-                  reduce(operator.add,
-                         map(lambda c: c.split(), charsets.split(','))))
+    def resolve_charset(charset):
+        if not charset:
+            return None
+        try:
+            name = codecs.lookup(charset).name
+            if name in seen:
+                return None
+            seen.add(name)
+            return name
+        except LookupError:
+            return None
+        return None
+
+    return filter(lambda c: c != None,
+                  map(resolve_charset,
+                      reduce(operator.add,
+                             map(lambda c: c.split(), charsets.split(',')))))
 
 
 def charset_encoder(charset, value):
