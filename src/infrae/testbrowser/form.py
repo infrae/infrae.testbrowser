@@ -8,6 +8,7 @@ import functools
 import codecs
 import lxml.etree
 
+from infrae.testbrowser.expressions import ExpressionResult
 from infrae.testbrowser.utils import File, resolve_url
 
 
@@ -226,6 +227,42 @@ def charset_encoder(charset, value):
     return str(value)
 
 
+class Controls(ExpressionResult):
+
+    def __init__(self, controls, name):
+
+        def prepare(control):
+            key = getattr(control, name, 'missing')
+            return (key.lower(), key, control)
+
+        super(Controls, self).__init__(map(prepare, controls))
+
+
+class ControlExpressions(object):
+
+    def __init__(self, form):
+        self.__form = form
+        self.__expressions = {}
+
+    def add(self, name, expression):
+        self.__expressions[name] = expression
+
+    def __getattr__(self, name):
+        if name in self.__expressions:
+            expression = self.__expressions[name]
+
+            def matcher(control):
+                for key, value in expression[0].items():
+                    if getattr(control, key, None) != value:
+                        return False
+                return True
+
+            return Controls(
+                filter(matcher, self.__form.controls.values()),
+                expression[1])
+        raise AttributeError(name)
+
+
 class Form(object):
 
     def __init__(self, html, browser):
@@ -240,6 +277,8 @@ class Form(object):
         self.enctype = html.get('enctype', 'application/x-www-form-urlencoded')
         self.accept_charset = parse_charset(html.get('accept-charset', 'utf-8'))
         self.controls = {}
+        self.inspect = ControlExpressions(self)
+        self.inspect.add('actions', ({'type': 'submit'}, 'value'))
         self.__browser = browser
         self.__control_names = []
         self.__populate_controls()
