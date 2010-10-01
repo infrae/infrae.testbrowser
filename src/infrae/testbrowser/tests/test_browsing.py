@@ -295,14 +295,14 @@ class BrowsingTestCase(unittest.TestCase):
             browser.html.xpath('//li/text()'),
             ['content type:multipart/form-data; '
              'boundary=------------uCtemt3iWu00F3QDhiwZ2nIQ$',
-             'content length:389',
+             'content length:%d' % (291 + len(filename)),
              '--------------uCtemt3iWu00F3QDhiwZ2nIQ$\r\n'
              'Content-Disposition: form-data; name="name"\r\n\r\nindex\r\n'
              '--------------uCtemt3iWu00F3QDhiwZ2nIQ$\r\n'
              'Content-Disposition: form-data; name="file"; filename="%s"\r\n'
              'Content-Type: text/plain\r\n\r\n'
              'You should readme.\nNow.\n\r\n'
-             '--------------uCtemt3iWu00F3QDhiwZ2nIQ$--\r\n' % filename])
+             '--------------uCtemt3iWu00F3QDhiwZ2nIQ$--\r\n' % (filename)])
 
     def test_form_get(self):
         browser = Browser(app.test_app_data)
