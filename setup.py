@@ -23,6 +23,7 @@ setup(name='infrae.testbrowser',
       namespace_packages=['infrae',],
       include_package_data=True,
       zip_safe=False,
+      test_suite='infrae.testbrowser',
       install_requires=[
         'setuptools',
         'lxml',
