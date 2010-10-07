@@ -6,7 +6,7 @@
 from cStringIO import StringIO
 from zope.interface import implements
 
-from infrae.wsgi.headers import HTTPHeaders
+from infrae.testbrowser.headers import HTTPHeaders
 from infrae.testbrowser.interfaces import IWSGIServer, IWSGIResponse
 
 
