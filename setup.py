@@ -25,5 +25,7 @@ setup(name='infrae.testbrowser',
       zip_safe=False,
       install_requires=[
         'setuptools',
+        'lxml',
+        'zope.interface',
         ],
       )
