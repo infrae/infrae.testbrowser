@@ -46,6 +46,7 @@ On the browser you have the following methods:
 ``set_request_header(key, value)``
    Add an header called `key` with the value `value` used while
    querying the application.
+   Headers are set for all further queries.
 
 ``get_request_header(key)``
   Get the value of an header used while querying the
@@ -101,6 +102,11 @@ The following properties are helpful as well:
 
 Browser options
 ---------------
+
+The following options are attributes of the options object, example::
+
+    >>> browser.options.handle_errors = False
+
 
 ``follow_redirect``
   Boolean indicating if a redirect must be automatically
