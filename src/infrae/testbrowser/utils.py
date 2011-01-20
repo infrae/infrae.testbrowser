@@ -57,8 +57,10 @@ class File(object):
 
     @property
     def data(self):
-        with open(self.__filename, 'rb') as data:
-            return data.read()
+        if self.__filename:
+            with open(self.__filename, 'rb') as data:
+                return data.read()
+        return ''
 
     def __str__(self):
         return self.data

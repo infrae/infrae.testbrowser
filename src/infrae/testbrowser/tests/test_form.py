@@ -350,6 +350,21 @@ class FormTestCase(unittest.TestCase):
             browser.html.xpath('//pre/text()'),
             ['document=You+should+readme.%0ANow.%0A&send=Send'])
 
+    def test_file_input_no_file_selected(self):
+        browser = Browser(app.TestAppTemplate('file_form.html'))
+        browser.open('/index.html')
+        form = browser.get_form('feedbackform')
+        self.assertNotEqual(form, None)
+        self.assertEqual(len(form.controls), 2)
+
+        submit_field = form.get_control('send')
+        self.assertEqual(submit_field.submit(), 200)
+        self.assertEqual(browser.url, '/submit.html')
+        self.assertEqual(browser.method, 'POST')
+        self.assertEqual(
+            browser.html.xpath('//pre/text()'),
+            ['document=&send=Send'])
+
 
 def test_suite():
     suite = unittest.TestSuite()
