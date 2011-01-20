@@ -4,6 +4,8 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+* Add support for a `css` option to inspection expressions.
+
 * Fix sending file when no file is selected.
 
 1.0 (2010-10-07)

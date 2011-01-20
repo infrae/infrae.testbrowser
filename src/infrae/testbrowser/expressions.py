@@ -4,7 +4,7 @@
 # $Id$
 
 import operator
-from lxml import etree
+import lxml
 from collections import defaultdict
 
 from infrae.testbrowser.utils import resolve_url
@@ -119,9 +119,15 @@ class Expressions(object):
         self.__browser = browser
         self.__expressions = defaultdict(lambda: tuple((None, None)))
 
-    def add(self, name, xpath, type='text'):
+    def add(self, name, xpath=None, type='text', css=None):
         assert type in EXPRESSION_TYPE, u'Unknown expression type %s' % type
-        self.__expressions[name] = (etree.XPath(xpath), type)
+        expression = None
+        if xpath is not None:
+            expression = lxml.etree.XPath(xpath)
+        elif css is not None:
+            expression = lxml.cssselect.CSSSelector(css)
+        assert expression is not None, u'You need to provide an XPath or CSS expression'
+        self.__expressions[name] = (expression, type)
 
     def __getattr__(self, name):
         expression, type = self.__expressions[name]

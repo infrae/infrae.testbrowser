@@ -131,12 +131,16 @@ expression with it, and query them after on HTML pages::
   >>> browser.inspect.add('feedback', '//div[@class="feedback"]/span')
   >>> self.assertEqual(browser.inspect.feedback, ['Everything ok'])
 
-``add(name, xpath, type)``
+  >>> browser.inspect.add('feedback', css='div.feedback span')
+  >>> self.assertEqual(browser.inspect.feedback, ['Everything ok'])
+
+
+``add(name, xpath=None, type='link', css=None)``
   Add an expression called `name` that can be used to inspect the HTML
-  content of the browser using the `xpath` expression. `type` can be
-  `text`, in that we will receive a list of text content of the
-  matched nodes, or `link`. In case of `link`, we will receive a list
-  of links.
+  content of the browser using the `xpath` expression (or the `css`
+  one). `type` can be `text`, in that we will receive a list of text
+  content of the matched nodes, or `link`. In case of `link`, we will
+  receive a list of links.
 
 Macros
 ------
