@@ -4,9 +4,16 @@ Changelog
 1.1 (unreleased)
 ----------------
 
-* Add support for a `css` option to inspection expressions.
+* Add support for a ``css`` option to inspection expressions.
+
+* Add an option ``id`` to ``get_form`` in order to be able to select a
+  form by its id.
 
 * Fix sending file when no file is selected.
+
+* Fix some detection issue with the *button* tag that doesn't seems to
+  be handled correctly by LXML.
+
 
 1.0 (2010-10-07)
 ----------------

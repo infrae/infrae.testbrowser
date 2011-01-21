@@ -24,7 +24,7 @@ class FormTestCase(unittest.TestCase):
             parse_charset('invalid ,, invalid utf8'),
             ['utf-8'])
 
-    def test_get_form(self):
+    def test_invalid_form_name_or_id(self):
         browser = Browser(app.test_app_text)
         browser.open('/index.html')
         self.assertRaises(
@@ -33,7 +33,20 @@ class FormTestCase(unittest.TestCase):
         browser = Browser(app.TestAppTemplate('simple_form.html'))
         browser.open('/index.html')
         self.assertRaises(
+            AssertionError, browser.get_form)
+        self.assertRaises(
             AssertionError, browser.get_form, 'notexisting')
+
+    def test_nameless_form(self):
+        browser = Browser(app.TestAppTemplate('nameless_form.html'))
+        browser.open('/index.html?option=on')
+        self.assertRaises(
+            AssertionError, browser.get_form, name='loginform')
+        form = browser.get_form(id='loginform')
+        self.assertEqual(form.name, None)
+        self.assertEqual(form.method, 'POST')
+        self.assertEqual(form.action, '/submit.html')
+        self.assertEqual(len(form.controls), 3)
 
     def test_malformed_form(self):
         browser = Browser(app.TestAppTemplate('malformed_form.html'))
@@ -365,6 +378,15 @@ class FormTestCase(unittest.TestCase):
             browser.html.xpath('//pre/text()'),
             ['document=&send=Send'])
 
+    def test_lxml_regression(self):
+        browser = Browser(app.TestAppTemplate('lxml_regression.html'))
+        browser.open('/index.html')
+        form = browser.get_form(id='regressions')
+        self.assertNotEqual(form, None)
+        self.assertEqual(len(form.controls), 1)
+
+        strange_button = form.get_control('refresh')
+        self.assertNotEqual(strange_button, None)
 
 def test_suite():
     suite = unittest.TestSuite()

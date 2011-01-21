@@ -210,13 +210,19 @@ class Browser(object):
             self.__url, self.__method, None, self.__data, self.__data_type)
         return self.status_code
 
-    def get_form(self, name):
+    def get_form(self, name=None, id=None):
         assert self.html is not None, 'Not viewing HTML'
-        if name not in self.__cache:
-            nodes = self.html.xpath('//form[@name="%s"]' % name)
+        expression = None
+        if name is not None:
+            expression = '//form[@name="%s"]' % name
+        elif id is not None:
+            expression = '//form[@id="%s"]' % id
+        assert expression is not None, 'Provides an id or a name to get_form'
+        if expression not in self.__cache:
+            nodes = self.html.xpath(expression)
             assert len(nodes) == 1, 'Form element not found'
-            self.__cache[name] = Form(nodes[0], self)
-        return self.__cache[name]
+            self.__cache[expression] = Form(nodes[0], self)
+        return self.__cache[expression]
 
     def get_link(self, content):
         assert self.html is not None, 'Not viewing HTML'

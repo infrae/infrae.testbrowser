@@ -59,8 +59,9 @@ On the browser you have the following methods:
 ``get_link(content)``
   Return a link selected via content.
 
-``get_form(name)``
-  Return a form selected via its `name` attribute.
+``get_form(name=None, id=None)``
+  Return a form selected via its `name` or `id` attribute (at least
+  one of them is required).
 
 The following properties are helpful as well:
 

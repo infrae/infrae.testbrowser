@@ -17,7 +17,8 @@ class Control(object):
     def __init__(self, form, html):
         self.form = form
         self.html = html
-        self.__name = html.name
+        self.__name = html.get('name')
+        assert self.__name is not None
         self.__multiple = False
         if html.tag == 'select':
             self.__type = 'select'
@@ -267,7 +268,7 @@ class Form(object):
 
     def __init__(self, html, browser):
         self.html = html
-        self.name = html.get('name', '')
+        self.name = html.get('name', None)
         base_action = html.get('action')
         if base_action:
             self.action = resolve_url(base_action, browser)
