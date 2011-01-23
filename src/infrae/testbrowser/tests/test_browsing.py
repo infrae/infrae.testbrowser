@@ -7,15 +7,18 @@ import unittest
 import operator
 import os.path
 
-from infrae.testbrowser.utils import File
 from infrae.testbrowser.browser import Browser
+from infrae.testbrowser.interfaces import IBrowser
 from infrae.testbrowser.tests import app
+from infrae.testbrowser.utils import File
 
+from zope.interface.verify import verifyObject
 
 class BrowsingTestCase(unittest.TestCase):
 
     def test_no_open(self):
         browser = Browser(app.test_app_write)
+        self.assertTrue(verifyObject(IBrowser, browser))
         self.assertEqual(browser.url, None)
         self.assertEqual(browser.method, None)
         self.assertEqual(browser.status, None)

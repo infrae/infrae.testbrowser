@@ -6,9 +6,12 @@
 import os.path
 import unittest
 
-from infrae.testbrowser.tests import app
 from infrae.testbrowser.browser import Browser
 from infrae.testbrowser.form import parse_charset
+from infrae.testbrowser.interfaces import IForm, IFormControl
+from infrae.testbrowser.tests import app
+
+from zope.interface.verify import verifyObject
 
 
 class FormTestCase(unittest.TestCase):
@@ -43,6 +46,7 @@ class FormTestCase(unittest.TestCase):
         self.assertRaises(
             AssertionError, browser.get_form, name='loginform')
         form = browser.get_form(id='loginform')
+        self.assertTrue(verifyObject(IForm, form))
         self.assertEqual(form.name, None)
         self.assertEqual(form.method, 'POST')
         self.assertEqual(form.action, '/submit.html')
@@ -65,6 +69,7 @@ class FormTestCase(unittest.TestCase):
         browser = Browser(app.TestAppTemplate('simple_form.html'))
         browser.open('/index.html')
         form = browser.get_form('loginform')
+        self.assertTrue(verifyObject(IForm, form))
 
         field = form.get_control('login')
         self.assertEqual(field.value, 'arthur')
@@ -96,6 +101,7 @@ class FormTestCase(unittest.TestCase):
 
         login_field = form.get_control('login')
         self.assertNotEqual(login_field, None)
+        self.assertTrue(verifyObject(IFormControl, login_field))
         self.assertEqual(login_field.value, 'arthur')
         self.assertEqual(login_field.type, 'text')
         self.assertEqual(login_field.multiple, False)
@@ -109,6 +115,7 @@ class FormTestCase(unittest.TestCase):
 
         password_field = form.get_control('password')
         self.assertNotEqual(password_field, None)
+        self.assertTrue(verifyObject(IFormControl, password_field))
         self.assertEqual(password_field.value, '')
         self.assertEqual(password_field.type, 'password')
         self.assertEqual(password_field.multiple, False)
@@ -123,6 +130,7 @@ class FormTestCase(unittest.TestCase):
 
         submit_field = form.get_control('save')
         self.assertNotEqual(submit_field, None)
+        self.assertTrue(verifyObject(IFormControl, submit_field))
         self.assertEqual(submit_field.value, 'Save')
         self.assertEqual(submit_field.type, 'submit')
         self.assertEqual(submit_field.multiple, False)
@@ -147,6 +155,7 @@ class FormTestCase(unittest.TestCase):
 
         true_field = form.get_control('true')
         self.assertNotEqual(true_field, None)
+        self.assertTrue(verifyObject(IFormControl, true_field))
         self.assertEqual(true_field.value, '')
         self.assertEqual(true_field.type, 'checkbox')
         self.assertEqual(true_field.multiple, False)
@@ -156,6 +165,7 @@ class FormTestCase(unittest.TestCase):
 
         false_field = form.get_control('false')
         self.assertNotEqual(false_field, None)
+        self.assertTrue(verifyObject(IFormControl, false_field))
         self.assertEqual(false_field.value, 'No')
         self.assertEqual(false_field.type, 'checkbox')
         self.assertEqual(false_field.multiple, False)
@@ -187,6 +197,7 @@ class FormTestCase(unittest.TestCase):
 
         multicheck_field = form.get_control('language')
         self.assertNotEqual(multicheck_field, None)
+        self.assertTrue(verifyObject(IFormControl, multicheck_field))
         self.assertEqual(multicheck_field.value, ['Python', 'Lisp'])
         self.assertEqual(multicheck_field.type, 'checkbox')
         self.assertEqual(multicheck_field.multiple, True)
@@ -220,6 +231,7 @@ class FormTestCase(unittest.TestCase):
 
         select_field = form.get_control('language')
         self.assertNotEqual(select_field, None)
+        self.assertTrue(verifyObject(IFormControl, select_field))
         self.assertEqual(select_field.value, 'Python')
         self.assertEqual(select_field.type, 'select')
         self.assertEqual(select_field.multiple, False)
@@ -251,6 +263,7 @@ class FormTestCase(unittest.TestCase):
 
         select_field = form.get_control('language')
         self.assertNotEqual(select_field, None)
+        self.assertTrue(verifyObject(IFormControl, select_field))
         self.assertEqual(select_field.value, ['C', 'Python'])
         self.assertEqual(select_field.type, 'select')
         self.assertEqual(select_field.multiple, True)
@@ -284,6 +297,7 @@ class FormTestCase(unittest.TestCase):
 
         textarea_field = form.get_control('comment')
         self.assertNotEqual(textarea_field, None)
+        self.assertTrue(verifyObject(IFormControl, textarea_field))
         self.assertEqual(textarea_field.value, 'The sky is blue')
         self.assertEqual(textarea_field.type, 'textarea')
         self.assertEqual(textarea_field.multiple, False)
@@ -312,6 +326,7 @@ class FormTestCase(unittest.TestCase):
 
         radio_field = form.get_control('adapter')
         self.assertNotEqual(radio_field, None)
+        self.assertTrue(verifyObject(IFormControl, radio_field))
         self.assertEqual(radio_field.value, 'No')
         self.assertEqual(radio_field.type, 'radio')
         self.assertEqual(radio_field.multiple, False)
@@ -345,6 +360,7 @@ class FormTestCase(unittest.TestCase):
 
         file_field = form.get_control('document')
         self.assertNotEqual(file_field, None)
+        self.assertTrue(verifyObject(IFormControl, file_field))
         self.assertEqual(file_field.value, '')
         self.assertEqual(file_field.type, 'file')
         self.assertEqual(file_field.multiple, False)

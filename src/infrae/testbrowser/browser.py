@@ -9,13 +9,15 @@ import lxml.html
 import urllib
 import urlparse
 
-from infrae.testbrowser.utils import encode_multipart_form_data, format_auth
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
+from infrae.testbrowser.interfaces import IBrowser, _marker
+from infrae.testbrowser.utils import encode_multipart_form_data, format_auth
 from infrae.testbrowser.wsgi import WSGIServer
 
+from zope.interface import implements
+
 HISTORY_LENGTH = 20
-_marker = object()
 
 
 class Options(object):
@@ -41,6 +43,7 @@ class Macros(object):
 
 
 class Browser(object):
+    implements(IBrowser)
 
     def __init__(self, app):
         self.options = Options()

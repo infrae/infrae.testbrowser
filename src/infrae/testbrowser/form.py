@@ -8,11 +8,15 @@ import functools
 import codecs
 import lxml.etree
 
+from infrae.testbrowser.interfaces import IFormControl, IForm
 from infrae.testbrowser.expressions import ExpressionResult
 from infrae.testbrowser.utils import File, resolve_url
 
+from zope.interface import implements
+
 
 class Control(object):
+    implements(IFormControl)
 
     def __init__(self, form, html):
         self.form = form
@@ -265,6 +269,7 @@ class ControlExpressions(object):
 
 
 class Form(object):
+    implements(IForm)
 
     def __init__(self, html, browser):
         self.html = html
