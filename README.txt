@@ -139,9 +139,19 @@ expression with it, and query them after on HTML pages::
 ``add(name, xpath=None, type='link', css=None)``
   Add an expression called `name` that can be used to inspect the HTML
   content of the browser using the `xpath` expression (or the `css`
-  one). `type` can be `text`, in that we will receive a list of text
-  content of the matched nodes, or `link`. In case of `link`, we will
-  receive a list of links.
+  one). `type` can be:
+
+  `text`
+    The result would be a list containing the text of each matched
+    element.
+
+  `normalized-text`
+    The result would be a list containing the text where whitespaces
+    have been normalized for each matched element.
+
+  `link`
+    The result would be a list of links.
+
 
 Macros
 ------

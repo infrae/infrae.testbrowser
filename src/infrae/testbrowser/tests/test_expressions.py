@@ -131,6 +131,36 @@ class ExpressionsTestCase(unittest.TestCase):
             ['Home ...', 'Development ...', 'Advanced Lisp ...'])
         self.assertEqual(len(browser.inspect.breadcrumbs), 3)
 
+    def test_normalized_spaces_xpath(self):
+        browser = Browser(app.TestAppTemplate('normalized_spaces.html'))
+        browser.inspect.add(
+            'menu', xpath='//ul[@class="menu"]/li', type='normalized-text')
+        browser.inspect.add(
+            'raw_menu', xpath='//ul[@class="menu"]/li', type='text')
+
+        browser.open('/index.html')
+        self.assertEqual(
+            browser.inspect.menu,
+            ['Home', 'Development ( tradional way )', 'Modern development'])
+        self.assertEqual(
+            browser.inspect.raw_menu,
+            ['Home', 'Development\n( tradional    way\n)', 'Modern\n\ndevelopment'])
+
+    def test_normalized_spaces_css(self):
+        browser = Browser(app.TestAppTemplate('normalized_spaces.html'))
+        browser.inspect.add(
+            'menu', css='ul.menu li', type='normalized-text')
+        browser.inspect.add(
+            'raw_menu', css='ul.menu li', type='text')
+
+        browser.open('/index.html')
+        self.assertEqual(
+            browser.inspect.menu,
+            ['Home', 'Development ( tradional way )', 'Modern development'])
+        self.assertEqual(
+            browser.inspect.raw_menu,
+            ['Home', 'Development\n( tradional    way\n)', 'Modern\n\ndevelopment'])
+
 
 def test_suite():
     suite = unittest.TestSuite()

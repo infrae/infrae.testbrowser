@@ -9,6 +9,14 @@ from collections import defaultdict
 
 from infrae.testbrowser.utils import resolve_url
 
+def node_to_normalized_text(node):
+    return ' '.join(
+        filter(
+            lambda s: s,
+            map(
+                lambda s: s.strip(),
+                node_to_text(node).split())))
+
 def node_to_text(node):
     return node.text_content().strip()
 
@@ -108,8 +116,18 @@ class Links(ExpressionResult):
 
 
 EXPRESSION_TYPE = {
-    'text': (node_to_text, none_filter, lambda nodes, browser: list(nodes)),
-    'link': (node_to_node, tag_filter('a'), Links),
+    'text': (
+        node_to_text,
+        none_filter,
+        lambda nodes, browser: list(nodes)),
+    'normalized-text': (
+        node_to_normalized_text,
+        none_filter,
+        lambda nodes, browser: list(nodes)),
+    'link': (
+        node_to_node,
+        tag_filter('a'),
+        Links),
     }
 
 

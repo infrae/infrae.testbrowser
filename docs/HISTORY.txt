@@ -9,6 +9,10 @@ Changelog
 * Add an option ``id`` to ``get_form`` in order to be able to select a
   form by its id.
 
+* Add `normalized-text` as a valid expression type to expressions: it
+  return the text of the matched nodes, where whitespaces are
+  normalized.
+
 * Fix sending file when no file is selected.
 
 * Fix some detection issue with the *button* tag that doesn't seems to
