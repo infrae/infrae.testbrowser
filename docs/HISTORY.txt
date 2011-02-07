@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.1 (unreleased)
+1.1 (2010-02-07)
 ----------------
 
 * Add support for a ``css`` option to inspection expressions.
