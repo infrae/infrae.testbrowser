@@ -116,6 +116,10 @@ class Links(ExpressionResult):
 
 
 EXPRESSION_TYPE = {
+    'node': (
+        node_to_node,
+        none_filter,
+        lambda nodes, browser: list(nodes)),
     'text': (
         node_to_text,
         none_filter,
