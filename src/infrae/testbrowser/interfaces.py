@@ -111,6 +111,7 @@ class IFormControl(Interface):
 class IForm(Interface):
     """Represent a form.
     """
+    name = Attribute(u"HTML name of the form")
     action = Attribute(u"URL to which the form is submitted")
     method = Attribute(u"Method used to submit the form")
     enctype = Attribute(u"Encoding type used to submit the form")

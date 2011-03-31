@@ -9,6 +9,7 @@ import urlparse
 from infrae.testbrowser.common import Macros
 from infrae.testbrowser.interfaces import IBrowser, _marker
 from infrae.testbrowser.selenium.expressions import Expressions, Link
+from infrae.testbrowser.selenium.form import Form
 from infrae.testbrowser.selenium.server import Server
 from infrae.testbrowser.selenium.utils import get_current_platform
 
@@ -44,15 +45,6 @@ class Browser(object):
         self.__user = None
         self.__password = None
 
-    def __verify_driver(self):
-        if self.__driver is None:
-            self.__server.start()
-            self.__driver = selenium.webdriver.Remote(
-                desired_capabilities={
-                    'browserName': self.options.browser,
-                    'javascriptEnabled': self.options.enable_javascript,
-                    'platform': self.options.platform})
-
     @property
     def url(self):
         if self.__driver is not None:
@@ -71,6 +63,15 @@ class Browser(object):
         if self.__driver is not None:
             return self.__driver.get_page_source()
         return None
+
+    def __verify_driver(self):
+        if self.__driver is None:
+            self.__server.start()
+            self.__driver = selenium.webdriver.Remote(
+                desired_capabilities={
+                    'browserName': self.options.browser,
+                    'javascriptEnabled': self.options.enable_javascript,
+                    'platform': self.options.platform})
 
     def __absolute_url(self, url):
         url_parts = list(urlparse.urlparse(url))
@@ -104,14 +105,26 @@ class Browser(object):
         self.__driver.get(self.__absolute_url(url))
 
     def reload(self):
-        assert self.__driver is not None, 'Nothing loaded to reload'
+        assert self.__driver is not None, u'Nothing loaded to reload'
         self.__driver.refresh()
 
+    def get_form(self, name=None, id=None):
+        assert self.__driver is not None, u'Not viewing anything'
+        expression = None
+        if name is not None:
+            expression = '//form[@name="%s"]' % name
+        elif id is not None:
+            expression = '//form[@id="%s"]' % id
+        assert expression is not None, u'Provides an id or a name to get_form'
+        elements = self.__driver.find_elements_by_xpath(expression)
+        assert len(elements) == 1, u'No form found'
+        return Form(elements[0])
+
     def get_link(self, content):
-        assert self.__driver is not None, 'Not viewing anything'
+        assert self.__driver is not None, u'Not viewing anything'
         elements = self.__driver.find_elements_by_link_text(content)
-        assert len(elements) == 1, 'No link found'
-        return Link(elements[0], self)
+        assert len(elements) == 1, u'No link found'
+        return Link(elements[0])
 
     def close(self):
         if self.__driver is not None:

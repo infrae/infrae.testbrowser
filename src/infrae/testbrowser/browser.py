@@ -214,13 +214,13 @@ class Browser(object):
         return self.status_code
 
     def get_form(self, name=None, id=None):
-        assert self.html is not None, 'Not viewing HTML'
+        assert self.html is not None, u'Not viewing HTML'
         expression = None
         if name is not None:
             expression = '//form[@name="%s"]' % name
         elif id is not None:
             expression = '//form[@id="%s"]' % id
-        assert expression is not None, 'Provides an id or a name to get_form'
+        assert expression is not None, u'Provides an id or a name to get_form'
         if expression not in self.__cache:
             nodes = self.html.xpath(expression)
             assert len(nodes) == 1, 'Form element not found'
@@ -228,10 +228,10 @@ class Browser(object):
         return self.__cache[expression]
 
     def get_link(self, content):
-        assert self.html is not None, 'Not viewing HTML'
+        assert self.html is not None, u'Not viewing HTML'
         urls = {}
         for link in self.html.xpath(
             '//a[contains(normalize-space(text()), "%s")]' % content):
             urls[link.attrib['href']] = link
-        assert len(urls) == 1, 'No link found'
+        assert len(urls) == 1, u'No link found'
         return Link(urls.values()[0], self)
