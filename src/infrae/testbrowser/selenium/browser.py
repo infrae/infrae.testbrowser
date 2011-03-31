@@ -3,11 +3,11 @@
 # See also LICENSE.txt
 # $Id$
 
-import os
 import urlparse
 
-from infrae.testbrowser.common import Macros
+from infrae.testbrowser.common import Macros, CustomizableOptions
 from infrae.testbrowser.interfaces import IBrowser, _marker
+from infrae.testbrowser.interfaces import ISeleniumCustomizableOptions
 from infrae.testbrowser.selenium.expressions import Expressions, Link
 from infrae.testbrowser.selenium.form import Form
 from infrae.testbrowser.selenium.server import Server
@@ -17,19 +17,18 @@ import selenium.webdriver
 from zope.interface import implements
 
 
-class Options(object):
+class Options(CustomizableOptions):
+    implements(ISeleniumCustomizableOptions)
     enable_javascript = True
     browser = 'firefox'
-    platform = 'UNIX'
+    platform = None
+    selenium = 'localhost:4444'
     server = 'localhost'
     port = '8000'
 
     def __init__(self):
-        if 'TESTBROWSER_BROWSER' in os.environ:
-            self.browser = os.environ['TESTBROWSER_BROWSER']
-        if 'TESTBROWSER_PLATFORM' in os.environ:
-            self.platform = os.environ['TESTBROWSER_PLATFORM']
-        else:
+        super(Options, self).__init__(ISeleniumCustomizableOptions)
+        if self.platform is None:
             self.platform = get_current_platform()
 
 
@@ -68,6 +67,7 @@ class Browser(object):
         if self.__driver is None:
             self.__server.start()
             self.__driver = selenium.webdriver.Remote(
+                command_executor='http://%s/wd/hub' % self.options.selenium,
                 desired_capabilities={
                     'browserName': self.options.browser,
                     'javascriptEnabled': self.options.enable_javascript,

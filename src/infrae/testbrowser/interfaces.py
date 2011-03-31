@@ -7,62 +7,13 @@ from zope.interface import Interface, Attribute
 
 _marker = object()
 
-class IWSGIResponse(Interface):
-    status = Attribute(u'HTTP status line')
-    headers = Attribute(u'Response headers')
-    output = Attribute(u'Response data (except headers)')
-
-
-class IWSGIServer(Interface):
-    server = Attribute(u'Server hostname')
-    port = Attribute(u'Server port')
-    protocol = Attribute(u'HTTP procotol version')
-
-    def get_default_environ():
-        pass
-
-    def get_environ(method, uri, headers, data=None, data_type=None):
-        pass
-
-    def __call__(method, uri, headers, data=None, data_type=None):
-        """Compute the a response for the query. This return a
-        IWSGIResponse object.
-        """
-
 
 class IBrowser(Interface):
     """Test browser interface.
     """
     url = Attribute(u"Currently viewed URL")
     location = Attribute(u"Currently viewed path")
-    method = Attribute(u"Method used to view the current page")
-    status = Attribute(u"HTTP status")
-    status_code = Attribute(u"HTTP status code as an integer")
-    headers = Attribute(u"Dictionary like access to response headers")
-    content_type = Attribute(u"Content type")
     contents = Attribute(u"Payload")
-    html = Attribute(u"HTML payload parsed by LXML, or None")
-    history = Attribute(u"Last previously viewed URLs")
-
-    def set_request_header(key, value):
-        """Set an HTTP header ``key`` to the given ``value`` for each
-        request made to the server.
-        """
-
-    def get_request_header(key):
-        """Get the value or None corresponding to the HTTP header
-        ``key`` that are sent to the server.
-        """
-
-    def del_request_header(key):
-        """If set, remove the HTTP header ``key`` from each request
-        made to the server.
-        """
-
-    def clear_request_headers():
-        """Clear all custom added HTTP headers that are sent to the
-        server each time a request is made.
-        """
 
     def login(user, password=_marker):
         """Set a HTTP Basic authorization header in the requests that
@@ -92,7 +43,40 @@ class IBrowser(Interface):
         """
 
     def get_link(content):
-        pass
+        """Return a link that matches ``content``.
+        """
+
+
+class IAdvancedBrowser(IBrowser):
+    """Browser with more low level API to the HTTP layer.
+    """
+    method = Attribute(u"Method used to view the current page")
+    status = Attribute(u"HTTP status")
+    status_code = Attribute(u"HTTP status code as an integer")
+    headers = Attribute(u"Dictionary like access to response headers")
+    content_type = Attribute(u"Content type")
+    html = Attribute(u"HTML payload parsed by LXML, or None")
+    history = Attribute(u"Last previously viewed URLs")
+
+    def set_request_header(key, value):
+        """Set an HTTP header ``key`` to the given ``value`` for each
+        request made to the server.
+        """
+
+    def get_request_header(key):
+        """Get the value or None corresponding to the HTTP header
+        ``key`` that are sent to the server.
+        """
+
+    def del_request_header(key):
+        """If set, remove the HTTP header ``key`` from each request
+        made to the server.
+        """
+
+    def clear_request_headers():
+        """Clear all custom added HTTP headers that are sent to the
+        server each time a request is made.
+        """
 
 
 class IFormControl(Interface):
@@ -127,3 +111,39 @@ class IForm(Interface):
         """Submit the form as-it. ``name`` and ``value`` let you add
         an extra value to the submission.
         """
+
+
+class ICustomizableOptions(Interface):
+    server = Attribute(u'Name of the server to use')
+    port = Attribute(u'Port of the server to use')
+
+
+class ISeleniumCustomizableOptions(ICustomizableOptions):
+    browser = Attribute(u'Browser to use firefox/internet explorer/chrome')
+    selenium = Attribute(u'host:port to use to connect to Selenium')
+
+
+# API of sub components.
+
+class IWSGIResponse(Interface):
+    status = Attribute(u'HTTP status line')
+    headers = Attribute(u'Response headers')
+    output = Attribute(u'Response data (except headers)')
+
+
+class IWSGIServer(Interface):
+    server = Attribute(u'Server hostname')
+    port = Attribute(u'Server port')
+    protocol = Attribute(u'HTTP procotol version')
+
+    def get_default_environ():
+        pass
+
+    def get_environ(method, uri, headers, data=None, data_type=None):
+        pass
+
+    def __call__(method, uri, headers, data=None, data_type=None):
+        """Compute the a response for the query. This return a
+        IWSGIResponse object.
+        """
+

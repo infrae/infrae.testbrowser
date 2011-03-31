@@ -8,10 +8,11 @@ import lxml.html
 import urllib
 import urlparse
 
-from infrae.testbrowser.common import Macros
+from infrae.testbrowser.common import Macros, CustomizableOptions
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
-from infrae.testbrowser.interfaces import IBrowser, _marker
+from infrae.testbrowser.interfaces import IAdvancedBrowser, _marker
+from infrae.testbrowser.interfaces import ICustomizableOptions
 from infrae.testbrowser.utils import encode_multipart_form_data, format_auth
 from infrae.testbrowser.wsgi import WSGIServer
 
@@ -20,7 +21,7 @@ from zope.interface import implements
 HISTORY_LENGTH = 20
 
 
-class Options(object):
+class Options(CustomizableOptions):
     # Browser options
     follow_redirect = True
     cookie_support = True
@@ -31,9 +32,12 @@ class Options(object):
     port = '80'
     protocol = 'HTTP/1.0'
 
+    def __init__(self):
+        super(Options, self).__init__(ICustomizableOptions)
+
 
 class Browser(object):
-    implements(IBrowser)
+    implements(IAdvancedBrowser)
 
     def __init__(self, app):
         self.options = Options()

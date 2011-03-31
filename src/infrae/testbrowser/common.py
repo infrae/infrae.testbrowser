@@ -5,7 +5,7 @@
 
 import functools
 import operator
-
+import os
 
 def node_to_node(node):
     return node
@@ -82,3 +82,13 @@ class Macros(object):
         if macro is not None:
             return macro
         raise AttributeError(name)
+
+
+class CustomizableOptions(object):
+
+    def __init__(self, interface=None):
+        if interface is not None:
+            for name, _ in interface.namesAndDescriptions():
+                key = 'TESTBROWSER_%s' % name.upper()
+                if key in os.environ:
+                    setattr(self, os.environ[key])
