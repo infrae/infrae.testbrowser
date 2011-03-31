@@ -54,6 +54,11 @@ class IBrowser(Interface):
         ``key`` that are sent to the server.
         """
 
+    def del_request_header(key):
+        """If set, remove the HTTP header ``key`` from each request
+        made to the server.
+        """
+
     def clear_request_headers():
         """Clear all custom added HTTP headers that are sent to the
         server each time a request is made.
@@ -63,6 +68,13 @@ class IBrowser(Interface):
         """Set a HTTP Basic authorization header in the requests that
         are sent to the server. If no ``password`` is provided, the
         ``login`` will be used as ``password``.
+
+        If ``login`` is None, it will remove any set HTTP Basic
+        authorization header.
+        """
+
+    def logout():
+        """Remove an HTTP Basic authorization set.
         """
 
     def open(url, method='GET', query=None,

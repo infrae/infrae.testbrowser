@@ -4,11 +4,11 @@
 # $Id$
 
 import collections
-import functools
 import lxml.html
 import urllib
 import urlparse
 
+from infrae.testbrowser.common import Macros
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
 from infrae.testbrowser.interfaces import IBrowser, _marker
@@ -21,25 +21,15 @@ HISTORY_LENGTH = 20
 
 
 class Options(object):
+    # Browser options
     follow_redirect = True
     cookie_support = True
     handle_errors = True
 
-
-class Macros(object):
-
-    def __init__(self, browser):
-        self.__browser = browser
-        self.__macros = {}
-
-    def add(self, name, macro):
-        self.__macros[name] = functools.partial(macro, self.__browser)
-
-    def __getattr__(self, name):
-        macro = self.__macros.get(name)
-        if macro is not None:
-            return macro
-        raise AttributeError(name)
+    # Server options
+    server = 'localhost'
+    port = '80'
+    protocol = 'HTTP/1.0'
 
 
 class Browser(object):
@@ -63,6 +53,12 @@ class Browser(object):
     @property
     def url(self):
         return self.__url
+
+    @property
+    def location(self):
+        if self.__url:
+            return urlparse.urlparse(self.__url).path
+        return None
 
     @property
     def method(self):
@@ -106,19 +102,23 @@ class Browser(object):
     def get_request_header(self, key):
         return self.__request_headers.get(key)
 
+    def del_request_header(self, key):
+        if key in self.__request_headers:
+            del self.__request_headers[key]
+
     def clear_request_headers(self):
         self.__request_headers = dict()
 
     def login(self, user, password=_marker):
-        if password is _marker:
-            password = user
-        self.set_request_header('Authorization', format_auth(user, password))
+        if user is None:
+            self.del_request_header('Authorization')
+        else:
+            if password is _marker:
+                password = user
+            self.set_request_header('Authorization', format_auth(user, password))
 
-    @property
-    def location(self):
-        if self.__url:
-            return urlparse.urlparse(self.__url).path
-        return None
+    def logout(self):
+        self.del_request_header('Authorization')
 
     @property
     def history(self):

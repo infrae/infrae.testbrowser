@@ -8,8 +8,8 @@ import functools
 import codecs
 import lxml.etree
 
+from infrae.testbrowser.common import ExpressionResult
 from infrae.testbrowser.interfaces import IFormControl, IForm
-from infrae.testbrowser.expressions import ExpressionResult
 from infrae.testbrowser.utils import File, resolve_url
 
 from zope.interface import implements

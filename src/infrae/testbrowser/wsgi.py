@@ -38,9 +38,6 @@ class WSGIResponse(object):
 
 class WSGIServer(object):
     implements(IWSGIServer)
-    server = 'localhost'
-    port = '80'
-    protocol = 'HTTP/1.0'
 
     def __init__(self, app, options):
         self.__app = app
@@ -48,9 +45,9 @@ class WSGIServer(object):
 
     def get_default_environ(self):
         environ = {}
-        environ['SERVER_PROTOCOL'] = self.protocol
-        environ['SERVER_NAME'] = self.server
-        environ['SERVER_PORT'] = self.port
+        environ['SERVER_PROTOCOL'] = self.options.protocol
+        environ['SERVER_NAME'] = self.options.server
+        environ['SERVER_PORT'] = self.options.port
         environ['wsgi.version'] = (1,0)
         environ['wsgi.url_scheme'] = 'http'
         environ['wsgi.input'] = StringIO()

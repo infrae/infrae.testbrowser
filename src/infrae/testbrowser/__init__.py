@@ -2,3 +2,7 @@
 # Copyright (c) 2010-2011 Infrae. All rights reserved.
 # See also LICENSE.txt
 # $Id$
+
+from infrae.testbrowser.browser import Browser
+
+__all__ = ['Browser']

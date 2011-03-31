@@ -28,5 +28,7 @@ setup(name='infrae.testbrowser',
         'setuptools',
         'lxml',
         'zope.interface',
+        'selenium',
         ],
+      extras_require = {'selenium': ['selenium']},
       )

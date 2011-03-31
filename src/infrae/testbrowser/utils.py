@@ -3,9 +3,9 @@
 # See also LICENSE.txt
 # $Id$
 
-import urlparse
-import urllib
 import mimetypes
+import urllib
+import urlparse
 
 
 def resolve_url(link, browser):
