@@ -21,15 +21,16 @@ class Options(CustomizableOptions):
     implements(ISeleniumCustomizableOptions)
     enable_javascript = True
     browser = 'firefox'
-    platform = None
-    selenium = 'localhost:4444'
+    selenium_platform = None
+    selenium_host = 'localhost'
+    selenium_port = '4444'
     server = 'localhost'
     port = '8000'
 
     def __init__(self):
         super(Options, self).__init__(ISeleniumCustomizableOptions)
-        if self.platform is None:
-            self.platform = get_current_platform()
+        if self.selenium_platform is None:
+            self.selenium_platform = get_current_platform()
 
 
 class Browser(object):
@@ -67,11 +68,13 @@ class Browser(object):
         if self.__driver is None:
             self.__server.start()
             self.__driver = selenium.webdriver.Remote(
-                command_executor='http://%s/wd/hub' % self.options.selenium,
+                command_executor='http://%s:%s/wd/hub' % (
+                    self.options.selenium_host,
+                    self.options.selenium_port),
                 desired_capabilities={
                     'browserName': self.options.browser,
                     'javascriptEnabled': self.options.enable_javascript,
-                    'platform': self.options.platform})
+                    'platform': self.options.selenium_platform})
 
     def __absolute_url(self, url):
         url_parts = list(urlparse.urlparse(url))

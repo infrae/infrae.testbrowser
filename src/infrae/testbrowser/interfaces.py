@@ -118,10 +118,14 @@ class ICustomizableOptions(Interface):
     port = Attribute(u'Port of the server to use')
 
 
-class ISeleniumCustomizableOptions(ICustomizableOptions):
+class ISeleniumCustomizableOptions(Interface):
+    # We don't inherit from ICustomizableOptions due zope.interface API suckiness
+    server = Attribute(u'Name of the server to use')
+    port = Attribute(u'Port of the server to use')
     browser = Attribute(u'Browser to use firefox/internet explorer/chrome')
-    selenium = Attribute(u'host:port to use to connect to Selenium')
-
+    selenium_host = Attribute(u'Host to use to connect to Selenium')
+    selenium_port = Attribute(u'Port to use to connect to Selenium')
+    selenium_platform = Attribute(u'Platform to request to Selenium')
 
 # API of sub components.
 

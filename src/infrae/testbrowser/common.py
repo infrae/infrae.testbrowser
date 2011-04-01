@@ -91,4 +91,4 @@ class CustomizableOptions(object):
             for name, _ in interface.namesAndDescriptions():
                 key = 'TESTBROWSER_%s' % name.upper()
                 if key in os.environ:
-                    setattr(self, os.environ[key])
+                    setattr(self, name, os.environ[key])
