@@ -1,7 +1,14 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.2dev'
+version = '2.0dev'
+
+selenium_require = [
+    'selenium'
+]
+tests_require = [
+    'selenium'
+]
 
 setup(name='infrae.testbrowser',
       version=version,
@@ -28,7 +35,8 @@ setup(name='infrae.testbrowser',
         'setuptools',
         'lxml',
         'zope.interface',
-        'selenium',
         ],
-      extras_require = {'selenium': ['selenium']},
+      extras_require = {'selenium': selenium_require,
+                        'test': tests_require},
+      tests_require = tests_require,
       )

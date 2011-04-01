@@ -15,6 +15,15 @@ class IBrowser(Interface):
     location = Attribute(u"Currently viewed path")
     contents = Attribute(u"Payload")
 
+    def open(url):
+        """Open the given URL.
+        """
+
+    def reload():
+        """Reload the current opened URL, re-submitting [form] data if
+        any where sent.
+        """
+
     def login(user, password=_marker):
         """Set a HTTP Basic authorization header in the requests that
         are sent to the server. If no ``password`` is provided, the
@@ -26,15 +35,6 @@ class IBrowser(Interface):
 
     def logout():
         """Remove an HTTP Basic authorization set.
-        """
-
-    def open(url, method='GET', query=None,
-             form=None, form_enctype='application/x-www-form-urlencoded'):
-        pass
-
-    def reload():
-        """Reload the current opened URL, re-submitting [form] data if
-        any where sent.
         """
 
     def get_form(name=None, id=None):
@@ -53,8 +53,8 @@ class IAdvancedBrowser(IBrowser):
     method = Attribute(u"Method used to view the current page")
     status = Attribute(u"HTTP status")
     status_code = Attribute(u"HTTP status code as an integer")
-    headers = Attribute(u"Dictionary like access to response headers")
     content_type = Attribute(u"Content type")
+    headers = Attribute(u"Dictionary like access to response headers")
     html = Attribute(u"HTML payload parsed by LXML, or None")
     history = Attribute(u"Last previously viewed URLs")
 
@@ -77,6 +77,10 @@ class IAdvancedBrowser(IBrowser):
         """Clear all custom added HTTP headers that are sent to the
         server each time a request is made.
         """
+
+    def open(url, method='GET', query=None,
+             form=None, form_enctype='application/x-www-form-urlencoded'):
+        pass
 
 
 class IFormControl(Interface):

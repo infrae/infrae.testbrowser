@@ -8,7 +8,7 @@ import operator
 import os.path
 
 from infrae.testbrowser.browser import Browser
-from infrae.testbrowser.interfaces import IBrowser
+from infrae.testbrowser.interfaces import IAdvancedBrowser
 from infrae.testbrowser.tests import app
 from infrae.testbrowser.utils import File
 
@@ -18,8 +18,9 @@ class BrowsingTestCase(unittest.TestCase):
 
     def test_no_open(self):
         browser = Browser(app.test_app_write)
-        self.assertTrue(verifyObject(IBrowser, browser))
+        self.assertTrue(verifyObject(IAdvancedBrowser, browser))
         self.assertEqual(browser.url, None)
+        self.assertEqual(browser.location, None)
         self.assertEqual(browser.method, None)
         self.assertEqual(browser.status, None)
         self.assertEqual(browser.status_code, None)
@@ -168,6 +169,26 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(
             browser.html.xpath('//li/text()'),
             ['HTTP_AUTHORIZATION:Basic dXNlcjpwYXNzd29yZA=='])
+
+    def test_logout(self):
+        browser = Browser(app.test_app_headers)
+        browser.login('user', 'password')
+        browser.open('http://localhost/index.html')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['HTTP_AUTHORIZATION:Basic dXNlcjpwYXNzd29yZA=='])
+
+        browser.logout()
+        browser.reload()
+
+        self.assertEqual(browser.url, '/index.html')
+        self.assertEqual(browser.location, '/index.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            [])
 
     def test_set_and_headers(self):
         browser = Browser(app.test_app_headers)
