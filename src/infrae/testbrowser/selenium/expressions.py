@@ -24,17 +24,23 @@ class Link(object):
     def __init__(self, element):
         self.element = element
         self.text = element.text
-        # Need to absolutize url
-        self.url = element.get_attribute('href')
+
+    @property
+    def url(self):
+        # XXX Need to make absolute
+        return self.element.get_attribute('href')
 
     def click(self):
         self.element.click()
 
     def __str__(self):
-        return self.text
+        return str(self.text)
+
+    def __unicode__(self):
+        return unicode(self.text)
 
     def __repr__(self):
-        return repr(self.text)
+        return repr(unicode(self.text))
 
 
 class Links(ExpressionResult):

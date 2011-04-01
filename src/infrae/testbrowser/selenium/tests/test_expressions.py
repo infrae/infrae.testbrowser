@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# Copyright (c) 2011 Infrae. All rights reserved.
 # See also LICENSE.txt
 # $Id$
 
@@ -7,7 +7,7 @@ import operator
 import unittest
 
 from infrae.testbrowser.tests import app
-from infrae.testbrowser.browser import Browser
+from infrae.testbrowser.selenium.browser import Browser
 
 
 class ExpressionsTestCase(unittest.TestCase):
@@ -25,13 +25,7 @@ class ExpressionsTestCase(unittest.TestCase):
             AssertionError,
             browser.inspect.add, 'simple')
 
-        browser.inspect.add('list', '//li')
-        browser.inspect.add('definition', css='dd.definition')
-        browser.open('/index.html')
-
-        self.assertRaises(
-            AssertionError,
-            operator.attrgetter('list'), browser.inspect)
+        browser.close()
 
     def test_text_xpath(self):
         browser = Browser(app.TestAppTemplate('text_expressions.html'))
@@ -45,6 +39,7 @@ class ExpressionsTestCase(unittest.TestCase):
         self.assertEqual(
             browser.inspect.ingredients,
             ['Flour', 'Sugar', 'Butter'])
+        browser.close()
 
     def test_text_css(self):
         browser = Browser(app.TestAppTemplate('text_expressions.html'))
@@ -58,6 +53,7 @@ class ExpressionsTestCase(unittest.TestCase):
         self.assertEqual(
             browser.inspect.ingredients,
             ['Flour', 'Sugar', 'Butter'])
+        browser.close()
 
     def test_link_xpath(self):
         browser = Browser(app.TestAppTemplate('link_expressions.html'))
@@ -82,7 +78,7 @@ class ExpressionsTestCase(unittest.TestCase):
         self.assertEqual(
             map(lambda l: l.url, browser.inspect.navigation.values()),
             ['/home.html', '/contact.html',
-             '/contact_abroad.html', '/development/python.html'])
+             '/contact_abroad.html', 'python.html'])
 
         self.assertEqual(
             browser.inspect.breadcrumbs.keys(),
@@ -97,9 +93,10 @@ class ExpressionsTestCase(unittest.TestCase):
         self.assertEqual(repr(links['contact']), repr(u'Contact'))
         self.assertEqual(links['contact'].text, 'Contact')
         self.assertEqual(links['contact'].url, '/contact.html')
-        self.assertEqual(links['contact'].click(), 200)
+        links['contact'].click()
 
-        self.assertEqual(browser.url, '/contact.html')
+        self.assertEqual(browser.location, '/contact.html')
+        browser.close()
 
     def test_link_css(self):
         browser = Browser(app.TestAppTemplate('link_expressions.html'))
@@ -124,43 +121,13 @@ class ExpressionsTestCase(unittest.TestCase):
         self.assertEqual(
             map(lambda l: l.url, browser.inspect.navigation.values()),
             ['/home.html', '/contact.html',
-             '/contact_abroad.html', '/development/python.html'])
+             '/contact_abroad.html', 'python.html'])
 
         self.assertEqual(
             browser.inspect.breadcrumbs.keys(),
             ['Home ...', 'Development ...', 'Advanced Lisp ...'])
         self.assertEqual(len(browser.inspect.breadcrumbs), 3)
-
-    def test_normalized_spaces_xpath(self):
-        browser = Browser(app.TestAppTemplate('normalized_spaces.html'))
-        browser.inspect.add(
-            'menu', xpath='//ul[@class="menu"]/li', type='normalized-text')
-        browser.inspect.add(
-            'raw_menu', xpath='//ul[@class="menu"]/li', type='text')
-
-        browser.open('/index.html')
-        self.assertEqual(
-            browser.inspect.menu,
-            ['Home', 'Development ( tradional way )', 'Modern development'])
-        self.assertEqual(
-            browser.inspect.raw_menu,
-            ['Home', 'Development\n( tradional    way\n)', 'Modern\n\ndevelopment'])
-
-    def test_normalized_spaces_css(self):
-        browser = Browser(app.TestAppTemplate('normalized_spaces.html'))
-        browser.inspect.add(
-            'menu', css='ul.menu li', type='normalized-text')
-        browser.inspect.add(
-            'raw_menu', css='ul.menu li', type='text')
-
-        browser.open('/index.html')
-        self.assertEqual(
-            browser.inspect.menu,
-            ['Home', 'Development ( tradional way )', 'Modern development'])
-        self.assertEqual(
-            browser.inspect.raw_menu,
-            ['Home', 'Development\n( tradional    way\n)', 'Modern\n\ndevelopment'])
-
+        browser.close()
 
 def test_suite():
     suite = unittest.TestSuite()

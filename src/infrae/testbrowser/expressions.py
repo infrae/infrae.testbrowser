@@ -42,10 +42,13 @@ class Link(object):
         return self.browser.open(self.url)
 
     def __str__(self):
-        return self.text
+        return str(self.text)
+
+    def __unicode__(self):
+        return unicode(self.text)
 
     def __repr__(self):
-        return repr(self.text)
+        return repr(unicode(self.text))
 
 
 class Links(ExpressionResult):

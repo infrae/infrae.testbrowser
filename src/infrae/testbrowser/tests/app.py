@@ -6,7 +6,7 @@
 import os
 
 def test_app_write(environ, start_response):
-    write = start_response('200 Ok', (('Content-type', 'text/html'),))
+    write = start_response('200 Ok', [('Content-type', 'text/html'),])
     write('<html>')
     write('<ul><li>SERVER: %s://%s:%s/</li>' % (
             environ['wsgi.url_scheme'],
@@ -18,7 +18,7 @@ def test_app_write(environ, start_response):
 
 
 def test_app_iter(environ, start_response):
-    start_response('200 Ok', (('Content-type', 'text/html'),))
+    start_response('200 Ok', [('Content-type', 'text/html'),])
     return ['<html><ul><li>SERVER: %s://%s:%s/</li>' % (
             environ['wsgi.url_scheme'],
             environ['SERVER_NAME'],
@@ -28,7 +28,7 @@ def test_app_iter(environ, start_response):
 
 
 def test_app_headers(environ, start_response):
-    start_response('200 Ok', (('Content-type', 'text/html'),))
+    start_response('200 Ok', [('Content-type', 'text/html'),])
     headers = map(lambda k: '<li>%s:%s</li>' % (k, environ[k]),
                   filter(lambda k: k.startswith('HTTP_'),
                          environ.keys()))
@@ -36,19 +36,19 @@ def test_app_headers(environ, start_response):
 
 
 def test_app_query(environ, start_response):
-    start_response('200 Ok', (('Content-type', 'text/html'),))
+    start_response('200 Ok', [('Content-type', 'text/html'),])
     return ['<html><ul><li>METHOD: %s</li>' % environ['REQUEST_METHOD'],
             '<li>URL: %s</li>' % environ['PATH_INFO'],
             '<li>QUERY: %s</li></ul></html>' % environ['QUERY_STRING']]
 
 
 def test_app_text(environ, start_response):
-    start_response('200 Ok', (('Content-type', 'text/plain'),))
+    start_response('200 Ok', [('Content-type', 'text/plain'),])
     return ['Hello world!']
 
 
 def test_app_data(environ, start_response):
-    start_response('200 Ok', (('Content-type', 'text/html'),))
+    start_response('200 Ok', [('Content-type', 'text/html'),])
     return ['<html><ul>',
             '<li>content type:%s</li>' % environ.get('CONTENT_TYPE', 'n/a'),
             '<li>content length:%s</li>' % environ.get('CONTENT_LENGTH', 'n/a'),
@@ -56,20 +56,22 @@ def test_app_data(environ, start_response):
 
 
 def test_app_empty(environ, start_response):
-    start_response('200 Ok', (('Content-type', 'text/html'),))
+    start_response('200 Ok', [('Content-type', 'text/html'),])
     return []
 
 
 class TestAppCount(object):
 
     def __init__(self):
-        self.count = 0
+        self.counts = {}
 
     def __call__(self, environ, start_response):
-        self.count += 1
-        start_response('200 Ok', (('Content-type', 'text/html'),))
-        return ['<html><p>Call %d, path %s</p></html>' % (
-                self.count, environ['PATH_INFO'])]
+        path = environ['PATH_INFO']
+        count = self.counts.get(path, 0)
+        count += 1
+        self.counts[path] = count
+        start_response('200 Ok', [('Content-type', 'text/html'),])
+        return ['<html><p>Call %d, path %s</p></html>' % (count, path)]
 
 
 class TestAppRedirect(object):
@@ -79,9 +81,9 @@ class TestAppRedirect(object):
 
     def __call__(self, environ, start_response):
         if environ['PATH_INFO'] == '/redirect.html':
-            start_response(self.code, (('Location', '/target.html'),))
+            start_response(self.code, [('Location', '/target.html'),])
             return []
-        start_response('200 Ok', (('Content-type', 'text/html'),))
+        start_response('200 Ok', [('Content-type', 'text/html'),])
         return ['<html><p>It works!</p></html>']
 
 
@@ -93,10 +95,10 @@ class TestAppTemplate(object):
 
     def __call__(self, environ, start_response):
         if environ['REQUEST_METHOD'] == 'POST':
-            start_response('200 Ok', (('Content-type', 'text/html'),))
+            start_response('200 Ok', [('Content-type', 'text/html'),])
             return ['<html><pre>%s</pre></html>' % environ['wsgi.input'].read()]
         with open(self.filename, 'r') as data:
-            start_response('200 Ok', (('Content-type', 'text/html'),))
+            start_response('200 Ok', [('Content-type', 'text/html'),])
             return [data.read()]
-        start_response('404 Not Found', (('Content-type', 'text/html')))
+        start_response('404 Not Found', [('Content-type', 'text/html'),])
         return ['<html>File not found</html>']
