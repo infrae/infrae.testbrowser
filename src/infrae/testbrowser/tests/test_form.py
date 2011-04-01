@@ -403,8 +403,3 @@ class FormTestCase(unittest.TestCase):
 
         strange_button = form.get_control('refresh')
         self.assertNotEqual(strange_button, None)
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(FormTestCase))
-    return suite

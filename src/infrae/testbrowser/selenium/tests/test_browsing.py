@@ -40,7 +40,3 @@ class BrowsingTestCase(unittest.TestCase):
         browser.close()
 
 
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(BrowsingTestCase))
-    return suite

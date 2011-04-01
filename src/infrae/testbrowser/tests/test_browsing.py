@@ -451,8 +451,3 @@ class BrowsingTestCase(unittest.TestCase):
         self.assertEqual(browser.status, '200 Ok')
         self.assertEqual(browser.contents, '<html><p>It works!</p></html>')
 
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(BrowsingTestCase))
-    return suite

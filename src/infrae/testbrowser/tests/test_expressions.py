@@ -161,8 +161,3 @@ class ExpressionsTestCase(unittest.TestCase):
             browser.inspect.raw_menu,
             ['Home', 'Development\n( tradional    way\n)', 'Modern\n\ndevelopment'])
 
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(ExpressionsTestCase))
-    return suite

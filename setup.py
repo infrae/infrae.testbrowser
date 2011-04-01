@@ -7,7 +7,8 @@ selenium_require = [
     'selenium'
 ]
 tests_require = [
-    'selenium'
+    'selenium',
+    'pytest',
 ]
 
 setup(name='infrae.testbrowser',

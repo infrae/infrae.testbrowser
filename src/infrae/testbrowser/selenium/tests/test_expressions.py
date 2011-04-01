@@ -128,8 +128,3 @@ class ExpressionsTestCase(unittest.TestCase):
             ['Home ...', 'Development ...', 'Advanced Lisp ...'])
         self.assertEqual(len(browser.inspect.breadcrumbs), 3)
         browser.close()
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(ExpressionsTestCase))
-    return suite

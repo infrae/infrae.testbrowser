@@ -66,8 +66,3 @@ class HeaderTestCase(unittest.TestCase):
             list(headers.iteritems()),
             [('Content-Length', '42'), ('Content-Type', 'text/plain')])
 
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(HeaderTestCase))
-    return suite
