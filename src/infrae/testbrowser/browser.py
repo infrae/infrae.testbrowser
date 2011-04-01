@@ -239,3 +239,6 @@ class Browser(object):
             urls[link.attrib['href']] = link
         assert len(urls) == 1, u'No link found'
         return Link(urls.values()[0], self)
+
+    def close(self):
+        pass

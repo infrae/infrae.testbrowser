@@ -8,7 +8,7 @@ selenium_require = [
 ]
 tests_require = [
     'selenium',
-    'pytest',
+    'zope.testing',
 ]
 
 setup(name='infrae.testbrowser',

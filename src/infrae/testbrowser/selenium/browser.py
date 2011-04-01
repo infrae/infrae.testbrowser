@@ -4,6 +4,7 @@
 # $Id$
 
 import urlparse
+import atexit
 
 from infrae.testbrowser.common import Macros, CustomizableOptions
 from infrae.testbrowser.interfaces import IBrowser, _marker
@@ -15,6 +16,51 @@ from infrae.testbrowser.selenium.utils import get_current_platform
 
 import selenium.webdriver
 from zope.interface import implements
+from zope.testing.cleanup import addCleanUp
+
+
+class SeleniumDrivers(object):
+    """Manage all active Selenium drivers.
+    """
+
+    def __init__(self):
+        self.__drivers = {}
+
+    def get(self, options):
+        """Return a Selenium driver associated to this set of options.
+        """
+        command_executor = 'http://%s:%s/wd/hub' % (
+            options.selenium_host,
+            options.selenium_port)
+        driver_key = (command_executor,
+                      options.selenium_platform,
+                      options.browser)
+        if driver_key in self.__drivers:
+            return self.__drivers[driver_key]
+
+        driver = selenium.webdriver.Remote(
+            command_executor=command_executor,
+            desired_capabilities={
+                'browserName': options.browser,
+                'javascriptEnabled': options.enable_javascript,
+                'platform': options.selenium_platform})
+        self.__drivers[driver_key] = driver
+        return driver
+
+    def all(self):
+        for key, driver in self.__drivers.iteritems():
+            yield driver
+
+    def clear(self):
+        for driver in self.all():
+            driver.close()
+            driver.stop_client()
+        self.__drivers = {}
+
+
+DRIVERS = SeleniumDrivers()
+addCleanUp(DRIVERS.clear)
+atexit.register(DRIVERS.clear)
 
 
 class Options(CustomizableOptions):
@@ -67,14 +113,7 @@ class Browser(object):
     def __verify_driver(self):
         if self.__driver is None:
             self.__server.start()
-            self.__driver = selenium.webdriver.Remote(
-                command_executor='http://%s:%s/wd/hub' % (
-                    self.options.selenium_host,
-                    self.options.selenium_port),
-                desired_capabilities={
-                    'browserName': self.options.browser,
-                    'javascriptEnabled': self.options.enable_javascript,
-                    'platform': self.options.selenium_platform})
+            self.__driver = DRIVERS.get(self.options)
 
     def __absolute_url(self, url):
         url_parts = list(urlparse.urlparse(url))
@@ -130,8 +169,4 @@ class Browser(object):
         return Link(elements[0])
 
     def close(self):
-        if self.__driver is not None:
-            self.__driver.close()
-            self.__driver.stop_client()
-            self.__driver = None
         self.__server.stop()

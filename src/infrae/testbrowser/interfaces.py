@@ -19,6 +19,10 @@ class IBrowser(Interface):
         """Open the given URL.
         """
 
+    def close():
+        """Close the browser.
+        """
+
     def reload():
         """Reload the current opened URL, re-submitting [form] data if
         any where sent.
