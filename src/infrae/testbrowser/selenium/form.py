@@ -24,7 +24,7 @@ class Control(object):
             self.__type = 'select'
             self.__multiple = element.get_attribute('multiple') != 'false'
             self.__options = collections.OrderedDict()
-            for option in element.find_elements_by_xpath('//option'):
+            for option in element.find_elements_by_xpath('descendant::option'):
                 value = option.get_attribute('value')
                 if value is None:
                     value = option.text
@@ -132,7 +132,7 @@ class Form(object):
         find_element = self.__element.find_elements_by_xpath
 
         # Input tags
-        for input_element in find_element('//input'):
+        for input_element in find_element('descendant::input'):
             input_name = input_element.get_attribute('name')
             if not input_name:
                 # Not usefull for our form
@@ -145,7 +145,7 @@ class Form(object):
                 self.controls[input_name] = factory(self, input_element)
 
         # Select tags
-        for select_node in find_element('//select'):
+        for select_node in find_element('descendant::select'):
             select_name = select_node.get_attribute('name')
             if not select_name:
                 # No name, not a concern
@@ -154,7 +154,7 @@ class Form(object):
             self.controls[select_name] = Control(self, select_node)
 
         # Textarea tags
-        for text_node in find_element('//textarea'):
+        for text_node in find_element('descendant::textarea'):
             text_name = text_node.get_attribute('name')
             if not text_name:
                 # No name, not a concern

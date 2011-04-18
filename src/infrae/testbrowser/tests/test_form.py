@@ -226,7 +226,7 @@ class FormTestCase(unittest.TestCase):
             browser.open('/index.html')
             form = browser.get_form('langform')
             self.assertNotEqual(form, None)
-            self.assertEqual(len(form.controls), 2)
+            self.assertEqual(len(form.controls), 3)
 
             select_field = form.get_control('language')
             self.assertNotEqual(select_field, None)
@@ -254,38 +254,38 @@ class FormTestCase(unittest.TestCase):
                 ['choose: Choose', 'language: C'])
 
     def test_multi_select(self):
-        browser = Browser(app.TestAppTemplate('multiselect_form.html'))
-        browser.open('/index.html')
-        form = browser.get_form('langform')
-        self.assertNotEqual(form, None)
-        self.assertEqual(len(form.controls), 2)
+        with Browser(app.TestAppTemplate('multiselect_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('langform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 2)
 
-        select_field = form.get_control('language')
-        self.assertNotEqual(select_field, None)
-        self.assertTrue(verifyObject(IFormControl, select_field))
-        self.assertEqual(select_field.value, ['C', 'Python'])
-        self.assertEqual(select_field.type, 'select')
-        self.assertEqual(select_field.multiple, True)
-        self.assertEqual(select_field.checkable, False)
-        self.assertEqual(select_field.checked, False)
-        self.assertEqual(
-            select_field.options,
-            ['C', 'Java', 'Erlang', 'Python', 'Lisp'])
+            select_field = form.get_control('language')
+            self.assertNotEqual(select_field, None)
+            self.assertTrue(verifyObject(IFormControl, select_field))
+            self.assertEqual(select_field.value, ['C', 'Python'])
+            self.assertEqual(select_field.type, 'select')
+            self.assertEqual(select_field.multiple, True)
+            self.assertEqual(select_field.checkable, False)
+            self.assertEqual(select_field.checked, False)
+            self.assertEqual(
+                select_field.options,
+                ['C', 'Java', 'Erlang', 'Python', 'Lisp'])
 
-        self.assertRaises(
-            AssertionError, setattr, select_field, 'value', 'C#')
-        select_field.value = 'Erlang'
-        self.assertEqual(select_field.value, ['Erlang'])
-        select_field.value = ['C', 'Python', 'Lisp']
-        self.assertEqual(select_field.value, ['C', 'Python', 'Lisp'])
+            self.assertRaises(
+                AssertionError, setattr, select_field, 'value', 'C#')
+            select_field.value = 'Erlang'
+            self.assertEqual(select_field.value, ['Erlang'])
+            select_field.value = ['C', 'Python', 'Lisp']
+            self.assertEqual(select_field.value, ['C', 'Python', 'Lisp'])
 
-        submit_field = form.get_control('choose')
-        self.assertEqual(submit_field.submit(), 200)
-        self.assertEqual(browser.url, '/submit.html')
-        self.assertEqual(browser.method, 'POST')
-        self.assertEqual(
-            browser.html.xpath('//ul/li/text()'),
-            ['choose: Choose', 'language: C', 'language: Python', 'language: Lisp'])
+            submit_field = form.get_control('choose')
+            self.assertEqual(submit_field.submit(), 200)
+            self.assertEqual(browser.url, '/submit.html')
+            self.assertEqual(browser.method, 'POST')
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['choose: Choose', 'language: C', 'language: Python', 'language: Lisp'])
 
     def test_textarea(self):
         browser = Browser(app.TestAppTemplate('textarea_form.html'))
