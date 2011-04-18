@@ -3,14 +3,13 @@
 # See also LICENSE.txt
 # $Id$
 
-import operator
 import functools
-import codecs
 import lxml.etree
 
-from infrae.testbrowser.common import ExpressionResult
 from infrae.testbrowser.interfaces import IFormControl, IForm
+from infrae.testbrowser.utils import ExpressionResult
 from infrae.testbrowser.utils import File, resolve_url
+from infrae.testbrowser.utils import parse_charset, charset_encoder
 
 from zope.interface import implements
 
@@ -197,39 +196,6 @@ class ButtonControl(Control):
 FORM_ELEMENT_IMPLEMENTATION = {
     'submit': ButtonControl,
     'image': ButtonControl}
-
-
-def parse_charset(charsets):
-    """Parse form accept charset and return a list of charset that can
-    be used in Python.
-    """
-    seen = set()
-
-    def resolve_charset(charset):
-        if not charset:
-            return None
-        try:
-            name = codecs.lookup(charset).name
-            if name in seen:
-                return None
-            seen.add(name)
-            return name
-        except LookupError:
-            return None
-        return None
-
-    return filter(lambda c: c != None,
-                  map(resolve_charset,
-                      reduce(operator.add,
-                             map(lambda c: c.split(), charsets.split(',')))))
-
-
-def charset_encoder(charset, value):
-    """Encoder a value in the given charset.
-    """
-    if isinstance(value, unicode):
-        return value.encode(charset, 'ignore')
-    return str(value)
 
 
 class Controls(ExpressionResult):

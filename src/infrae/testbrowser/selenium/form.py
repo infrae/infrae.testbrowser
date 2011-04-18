@@ -3,8 +3,14 @@
 # See also LICENSE.txt
 # $Id$
 
+from infrae.testbrowser.interfaces import IFormControl, IForm
+from infrae.testbrowser.utils import parse_charset, resolve_location
+
+from zope.interface import implements
+
 
 class Control(object):
+    implements(IFormControl)
 
     def __init__(self, form, element):
         self.form = form
@@ -19,6 +25,8 @@ class Control(object):
                 self.__type = 'textarea'
             else:
                 self.__type = element.get_attribute('type') or 'submit'
+            self.__options = []
+        self.__checked = False
 
     @apply
     def name():
@@ -37,7 +45,36 @@ class Control(object):
         def getter(self):
             return self._element.value
         def setter(self, value):
+            if not isinstance(value, basestring):
+                raise AssertionError(u'Multiple values not accepted for this field')
             self._element.send_keys(value)
+        return property(getter, setter)
+
+    @apply
+    def multiple():
+        def getter(self):
+            return self.__multiple
+        return property(getter)
+
+    @apply
+    def options():
+        def getter(self):
+            return self.__options
+        return property(getter)
+
+    @apply
+    def checkable():
+        def getter(self):
+            return self.__type in ['checkbox', 'radio'] and not self.__options
+        return property(getter)
+
+    @apply
+    def checked():
+        def getter(self):
+            return self.__checked
+        def setter(self, value):
+            assert self.checkable, u"Not checkable"
+            self.__checked = bool(value)
         return property(getter, setter)
 
     def _extend(self, html):
@@ -56,12 +93,19 @@ FORM_ELEMENT_IMPLEMENTATION = {
     'submit': ButtonControl,
     'image': ButtonControl}
 
+
 class Form(object):
+    implements(IForm)
 
     def __init__(self, element):
         self.name = element.get_attribute('name') or None
+        self.action = None
+        action = element.get_attribute('action')
+        if action:
+            self.action = resolve_location(action)
         self.method = (element.get_attribute('method') or 'POST').upper()
         self.enctype = element.get_attribute('enctype') or 'application/x-www-form-urlencoded'
+        self.accept_charset = parse_charset(element.get_attribute('accept-charset') or 'utf-8')
         self.controls = {}
         self.__element = element
         self.__populate_controls()
@@ -84,5 +128,5 @@ class Form(object):
             raise AssertionError(u'No control %s' % name)
         return self.controls.get(name)
 
-    def submit(self):
+    def submit(self, name=None, value=None):
         self.__element.submit()

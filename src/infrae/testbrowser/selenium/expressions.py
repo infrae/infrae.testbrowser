@@ -6,8 +6,8 @@
 
 from collections import defaultdict
 
-from infrae.testbrowser.common import node_to_node, none_filter
-from infrae.testbrowser.common import ExpressionResult
+from infrae.testbrowser.utils import node_to_node, none_filter
+from infrae.testbrowser.utils import ExpressionResult
 
 
 def node_to_text(node):

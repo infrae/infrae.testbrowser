@@ -8,11 +8,11 @@ import lxml.html
 import urllib
 import urlparse
 
-from infrae.testbrowser.common import Macros, CustomizableOptions
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
 from infrae.testbrowser.interfaces import IAdvancedBrowser, _marker
 from infrae.testbrowser.interfaces import ICustomizableOptions
+from infrae.testbrowser.utils import Macros, CustomizableOptions
 from infrae.testbrowser.utils import encode_multipart_form_data, format_auth
 from infrae.testbrowser.wsgi import WSGIServer
 
@@ -53,6 +53,12 @@ class Browser(object):
         self.__history = collections.deque([], HISTORY_LENGTH)
         self.__cache = {}
         self.html = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     @property
     def url(self):

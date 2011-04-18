@@ -15,6 +15,16 @@ class IBrowser(Interface):
     location = Attribute(u"Currently viewed path")
     contents = Attribute(u"Payload")
 
+    def __enter__():
+        """Use a browser as a context manager. It will auto-close at
+        the end of the context.
+        """
+
+    def __exit__(exc_type, exc_val, exc_tb):
+        """Use a browser as a context manager. It will auto-close at
+        the end of the context.
+        """
+
     def open(url):
         """Open the given URL.
         """

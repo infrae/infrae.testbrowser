@@ -143,8 +143,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['login=arthur&password=secret&save=Save'])
+            browser.html.xpath('//ul/li/text()'),
+            ['login: arthur', 'password: secret', 'save: Save'])
 
     def test_checkbox_input(self):
         browser = Browser(app.TestAppTemplate('checkbox_form.html'))
@@ -185,8 +185,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['true=Yes&send=Send'])
+            browser.html.xpath('//ul/li/text()'),
+            ['send: Send', 'true: Yes'])
 
     def test_multi_checkbox_input(self):
         browser = Browser(app.TestAppTemplate('multicheckbox_form.html'))
@@ -219,8 +219,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['language=C&language=Python&language=Lisp&choose=Choose'])
+            browser.html.xpath('//ul/li/text()'),
+            ['choose: Choose', 'language: C', 'language: Python', 'language: Lisp'])
 
     def test_select(self):
         browser = Browser(app.TestAppTemplate('select_form.html'))
@@ -251,8 +251,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['choose=Choose&language=C'])
+            browser.html.xpath('//ul/li/text()'),
+            ['choose: Choose', 'language: C'])
 
     def test_multi_select(self):
         browser = Browser(app.TestAppTemplate('multiselect_form.html'))
@@ -285,8 +285,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['choose=Choose&language=C&language=Python&language=Lisp'])
+            browser.html.xpath('//ul/li/text()'),
+            ['choose: Choose', 'language: C', 'language: Python', 'language: Lisp'])
 
     def test_textarea(self):
         browser = Browser(app.TestAppTemplate('textarea_form.html'))
@@ -314,8 +314,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['save=Save&comment=A+really+blue+sky'])
+            browser.html.xpath('//ul/li/text()'),
+            ['comment: A really blue sky', 'save: Save'])
 
     def test_radio_input(self):
         browser = Browser(app.TestAppTemplate('radio_form.html'))
@@ -348,8 +348,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['adapter=Yes&send=Send'])
+            browser.html.xpath('//ul/li/text()'),
+            ['adapter: Yes', 'send: Send'])
 
     def test_file_input(self):
         browser = Browser(app.TestAppTemplate('file_form.html'))
@@ -376,8 +376,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['document=You+should+readme.%0ANow.%0A&send=Send'])
+            browser.html.xpath('//ul/li/text()'),
+            ['document: You should readme.\nNow.\n', 'send: Send'])
 
     def test_file_input_no_file_selected(self):
         browser = Browser(app.TestAppTemplate('file_form.html'))
@@ -391,8 +391,8 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(browser.url, '/submit.html')
         self.assertEqual(browser.method, 'POST')
         self.assertEqual(
-            browser.html.xpath('//pre/text()'),
-            ['document=&send=Send'])
+            browser.html.xpath('//ul/li/text()'),
+            ['send: Send'])
 
     def test_lxml_regression(self):
         browser = Browser(app.TestAppTemplate('lxml_regression.html'))

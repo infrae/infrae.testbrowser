@@ -4,6 +4,8 @@
 # $Id$
 
 import os
+import operator
+import urlparse
 
 def test_app_write(environ, start_response):
     write = start_response('200 Ok', [('Content-type', 'text/html'),])
@@ -96,7 +98,12 @@ class TestAppTemplate(object):
     def __call__(self, environ, start_response):
         if environ['REQUEST_METHOD'] == 'POST':
             start_response('200 Ok', [('Content-type', 'text/html'),])
-            return ['<html><pre>%s</pre></html>' % environ['wsgi.input'].read()]
+            environ_length = environ.get('CONTENT_LENGTH')
+            length = int(environ_length) if environ_length else 0
+            data = urlparse.parse_qsl(environ['wsgi.input'].read(length))
+            data.sort(key=operator.itemgetter(0))
+            return ['<html><ul>%s</ul></html>' % ''.join(map(
+                        lambda v: '<li>%s: %s</li>' % (v[0], ''.join(v[1])), data))]
         with open(self.filename, 'r') as data:
             start_response('200 Ok', [('Content-type', 'text/html'),])
             return [data.read()]

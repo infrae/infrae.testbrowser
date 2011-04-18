@@ -3,16 +3,17 @@
 # See also LICENSE.txt
 # $Id$
 
+import urllib2
 import urlparse
 import atexit
 
-from infrae.testbrowser.common import Macros, CustomizableOptions
 from infrae.testbrowser.interfaces import IBrowser, _marker
 from infrae.testbrowser.interfaces import ISeleniumCustomizableOptions
 from infrae.testbrowser.selenium.expressions import Expressions, Link
 from infrae.testbrowser.selenium.form import Form
 from infrae.testbrowser.selenium.server import Server
 from infrae.testbrowser.selenium.utils import get_current_platform
+from infrae.testbrowser.utils import Macros, CustomizableOptions
 
 import selenium.webdriver
 from zope.interface import implements
@@ -38,14 +39,18 @@ class SeleniumDrivers(object):
         if driver_key in self.__drivers:
             return self.__drivers[driver_key]
 
-        driver = selenium.webdriver.Remote(
-            command_executor=command_executor,
-            desired_capabilities={
-                'browserName': options.browser,
-                'javascriptEnabled': options.enable_javascript,
-                'platform': options.selenium_platform})
-        self.__drivers[driver_key] = driver
-        return driver
+        try:
+            driver = selenium.webdriver.Remote(
+                command_executor=command_executor,
+                desired_capabilities={
+                    'browserName': options.browser,
+                    'javascriptEnabled': options.enable_javascript,
+                    'platform': options.selenium_platform})
+            self.__drivers[driver_key] = driver
+            return driver
+        except urllib2.URLError as error:
+            raise AssertionError(u"Could not connect to remote Selenium %s: %s" % (
+                    command_executor, str(error)))
 
     def all(self):
         for key, driver in self.__drivers.iteritems():
@@ -91,6 +96,12 @@ class Browser(object):
         self.__user = None
         self.__password = None
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     @property
     def url(self):
         if self.__driver is not None:
@@ -112,8 +123,8 @@ class Browser(object):
 
     def __verify_driver(self):
         if self.__driver is None:
-            self.__server.start()
             self.__driver = DRIVERS.get(self.options)
+            self.__server.start()
 
     def __absolute_url(self, url):
         url_parts = list(urlparse.urlparse(url))
