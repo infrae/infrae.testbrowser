@@ -47,6 +47,7 @@ class Control(object):
         def setter(self, value):
             if not isinstance(value, basestring):
                 raise AssertionError(u'Multiple values not accepted for this field')
+            self._element.clear()
             self._element.send_keys(value)
         return property(getter, setter)
 
@@ -111,7 +112,9 @@ class Form(object):
         self.__populate_controls()
 
     def __populate_controls(self):
-        for input_element in self.__element.find_elements_by_xpath('//input'):
+        find_element = self.__element.find_elements_by_xpath
+        # Input tags
+        for input_element in find_element('//input'):
             input_name = input_element.get_attribute('name')
             if not input_name:
                 # Not usefull for our form
@@ -122,6 +125,15 @@ class Form(object):
                 input_type = input_element.get_attribute('type') or 'submit'
                 factory = FORM_ELEMENT_IMPLEMENTATION.get(input_type, Control)
                 self.controls[input_name] = factory(self, input_element)
+
+        # Textarea tags
+        for text_node in find_element('//textarea'):
+            text_name = text_node.get_attribute('name')
+            if not text_name:
+                # No name, not a concern
+                continue
+            assert text_name not in self.controls
+            self.controls[text_name] = Control(self, text_node)
 
     def get_control(self, name):
         if name not in self.controls:

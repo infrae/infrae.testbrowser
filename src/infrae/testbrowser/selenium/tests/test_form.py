@@ -81,8 +81,9 @@ class FormTestCase(unittest.TestCase):
             submit_field.submit()
 
             self.assertEqual(browser.location, '/submit.html')
-            self.assertTrue('<ul><li>login: arthur</li><li>password: secret</li><li>save: Save</li></ul>'
-                            in browser.contents)
+            self.assertTrue(
+                '<ul><li>login: arthur</li><li>password: secret</li><li>save: Save</li></ul>'
+                in browser.contents)
 
     def test_textarea(self):
         with Browser(app.TestAppTemplate('textarea_form.html')) as browser:
@@ -105,11 +106,12 @@ class FormTestCase(unittest.TestCase):
                 AssertionError, setattr, textarea_field, 'value', ['A list'])
 
             textarea_field.value = 'A really blue sky'
+            self.assertEqual(textarea_field.value, 'A really blue sky')
+
             submit_field = form.get_control('save')
             submit_field.submit()
 
             self.assertEqual(browser.location, '/submit.html')
-            self.assertEqual(browser.method, 'POST')
-            self.assertEqual(
-                browser.html.xpath('//pre/text()'),
-                ['save=Save&comment=A+really+blue+sky'])
+            self.assertTrue(
+                '<ul><li>comment: A really blue sky</li><li>save: Save</li></ul>'
+                in browser.contents)
