@@ -28,44 +28,43 @@ class FormTestCase(unittest.TestCase):
             ['utf-8'])
 
     def test_invalid_form_name_or_id(self):
-        browser = Browser(app.test_app_text)
-        browser.open('/index.html')
-        self.assertRaises(
-            AssertionError, browser.get_form, 'form')
+        with Browser(app.test_app_text) as browser:
+            browser.open('/index.html')
+            self.assertRaises(
+                AssertionError, browser.get_form, 'form')
 
-        browser = Browser(app.TestAppTemplate('simple_form.html'))
-        browser.open('/index.html')
-        self.assertRaises(
-            AssertionError, browser.get_form)
-        self.assertRaises(
-            AssertionError, browser.get_form, 'notexisting')
+        with Browser(app.TestAppTemplate('simple_form.html')) as browser:
+            browser.open('/index.html')
+            self.assertRaises(
+                AssertionError, browser.get_form)
+            self.assertRaises(
+                AssertionError, browser.get_form, 'notexisting')
 
     def test_nameless_form(self):
-        browser = Browser(app.TestAppTemplate('nameless_form.html'))
-        browser.open('/index.html?option=on')
-        self.assertRaises(
-            AssertionError, browser.get_form, name='loginform')
-        form = browser.get_form(id='loginform')
-        self.assertTrue(verifyObject(IForm, form))
-        self.assertEqual(form.name, None)
-        self.assertEqual(form.method, 'POST')
-        self.assertEqual(form.action, '/submit.html')
-        self.assertEqual(len(form.controls), 3)
+        with Browser(app.TestAppTemplate('nameless_form.html')) as browser:
+            browser.open('/index.html?option=on')
+            self.assertRaises(
+                AssertionError, browser.get_form, name='loginform')
+            form = browser.get_form(id='loginform')
+            self.assertTrue(verifyObject(IForm, form))
+            self.assertEqual(form.name, None)
+            self.assertEqual(form.method, 'POST')
+            self.assertEqual(form.action, '/submit.html')
+            self.assertEqual(len(form.controls), 3)
 
     def test_malformed_form(self):
-        browser = Browser(app.TestAppTemplate('malformed_form.html'))
-        browser.open('/index.html?option=on')
-        form = browser.get_form('malform')
-        # This form has no action. It default to the browser location
-        self.assertEqual(form.name, 'malform')
-        self.assertEqual(form.method, 'POST')
-        self.assertEqual(form.action, '/index.html')
-        self.assertEqual(len(form.controls), 2)
+        with Browser(app.TestAppTemplate('malformed_form.html')) as browser:
+            browser.open('/index.html?option=on')
+            form = browser.get_form('malform')
+            # This form has no action. It default to the browser location
+            self.assertEqual(form.name, 'malform')
+            self.assertEqual(form.method, 'POST')
+            self.assertEqual(form.action, '/index.html')
+            self.assertEqual(len(form.controls), 2)
 
     def test_form_cache(self):
         # If you find a form and set a value it must be keept for the
         # opened URL.
-
         browser = Browser(app.TestAppTemplate('simple_form.html'))
         browser.open('/index.html')
         form = browser.get_form('loginform')
@@ -223,36 +222,36 @@ class FormTestCase(unittest.TestCase):
             ['choose: Choose', 'language: C', 'language: Python', 'language: Lisp'])
 
     def test_select(self):
-        browser = Browser(app.TestAppTemplate('select_form.html'))
-        browser.open('/index.html')
-        form = browser.get_form('langform')
-        self.assertNotEqual(form, None)
-        self.assertEqual(len(form.controls), 2)
+        with Browser(app.TestAppTemplate('select_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('langform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 2)
 
-        select_field = form.get_control('language')
-        self.assertNotEqual(select_field, None)
-        self.assertTrue(verifyObject(IFormControl, select_field))
-        self.assertEqual(select_field.value, 'Python')
-        self.assertEqual(select_field.type, 'select')
-        self.assertEqual(select_field.multiple, False)
-        self.assertEqual(select_field.checkable, False)
-        self.assertEqual(select_field.checked, False)
-        self.assertEqual(
-            select_field.options,
-            ['C', 'Java', 'Erlang', 'Python', 'Lisp'])
+            select_field = form.get_control('language')
+            self.assertNotEqual(select_field, None)
+            self.assertTrue(verifyObject(IFormControl, select_field))
+            self.assertEqual(select_field.value, 'Python')
+            self.assertEqual(select_field.type, 'select')
+            self.assertEqual(select_field.multiple, False)
+            self.assertEqual(select_field.checkable, False)
+            self.assertEqual(select_field.checked, False)
+            self.assertEqual(
+                select_field.options,
+                ['C', 'Java', 'Erlang', 'Python', 'Lisp'])
 
-        self.assertRaises(
-            AssertionError, setattr, select_field, 'value', 'C#')
-        select_field.value = 'C'
-        self.assertEqual(select_field.value, 'C')
+            self.assertRaises(
+                AssertionError, setattr, select_field, 'value', 'C#')
+            select_field.value = 'C'
+            self.assertEqual(select_field.value, 'C')
 
-        submit_field = form.get_control('choose')
-        self.assertEqual(submit_field.submit(), 200)
-        self.assertEqual(browser.url, '/submit.html')
-        self.assertEqual(browser.method, 'POST')
-        self.assertEqual(
-            browser.html.xpath('//ul/li/text()'),
-            ['choose: Choose', 'language: C'])
+            submit_field = form.get_control('choose')
+            self.assertEqual(submit_field.submit(), 200)
+            self.assertEqual(browser.url, '/submit.html')
+            self.assertEqual(browser.method, 'POST')
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['choose: Choose', 'language: C'])
 
     def test_multi_select(self):
         browser = Browser(app.TestAppTemplate('multiselect_form.html'))

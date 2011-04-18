@@ -28,7 +28,7 @@ class Control(object):
             self.__multiple = html.get('multiple', False) is not False
             self.__value = [] if self.__multiple else ''
             self.__options = []
-            for option in html.xpath('descendant::option'):
+            for option in html.xpath('//option'):
                 value = option.get('value', None)
                 if value is None:
                     value = option.text_content()
@@ -258,7 +258,7 @@ class Form(object):
     def __populate_controls(self):
         __traceback_info__ = 'Error while parsing form: \n\n%s\n\n' % str(self)
         # Input tags
-        for input_node in self.html.xpath('descendant::input'):
+        for input_node in self.html.xpath('//input'):
             input_name = input_node.get('name', None)
             if not input_name:
                 # No name, not a concern to this form
@@ -272,7 +272,7 @@ class Form(object):
                 self.__control_names.append(input_name)
 
         # Select tags
-        for select_node in self.html.xpath('descendant::select'):
+        for select_node in self.html.xpath('//select'):
             select_name = select_node.get('name', None)
             if not select_name:
                 # No name, not a concern
@@ -282,7 +282,7 @@ class Form(object):
             self.__control_names.append(select_name)
 
         # Textarea tags
-        for text_node in self.html.xpath('descendant::textarea'):
+        for text_node in self.html.xpath('//textarea'):
             text_name = text_node.get('name', None)
             if not text_name:
                 # No name, not a concern
@@ -292,7 +292,7 @@ class Form(object):
             self.__control_names.append(text_name)
 
         # Button tags
-        for button_node in self.html.xpath('descendant::button'):
+        for button_node in self.html.xpath('//button'):
             button_name = button_node.get('name', None)
             if not button_name:
                 # No name, not a concern

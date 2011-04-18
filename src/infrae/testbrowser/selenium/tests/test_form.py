@@ -14,6 +14,19 @@ from zope.interface.verify import verifyObject
 
 class FormTestCase(unittest.TestCase):
 
+    def test_invalid_form_name_or_id(self):
+        with Browser(app.test_app_text) as browser:
+            browser.open('/index.html')
+            self.assertRaises(
+                AssertionError, browser.get_form, 'form')
+
+        with Browser(app.TestAppTemplate('simple_form.html')) as browser:
+            browser.open('/index.html')
+            self.assertRaises(
+                AssertionError, browser.get_form)
+            self.assertRaises(
+                AssertionError, browser.get_form, 'notexisting')
+
     def test_nameless_form(self):
         with Browser(app.TestAppTemplate('nameless_form.html')) as browser:
             browser.open('/index.html?option=on')
@@ -83,6 +96,38 @@ class FormTestCase(unittest.TestCase):
             self.assertEqual(browser.location, '/submit.html')
             self.assertTrue(
                 '<ul><li>login: arthur</li><li>password: secret</li><li>save: Save</li></ul>'
+                in browser.contents)
+
+    def test_select(self):
+        with Browser(app.TestAppTemplate('select_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('langform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 2)
+
+            select_field = form.get_control('language')
+            self.assertNotEqual(select_field, None)
+            self.assertTrue(verifyObject(IFormControl, select_field))
+            self.assertEqual(select_field.value, 'Python')
+            self.assertEqual(select_field.type, 'select')
+            self.assertEqual(select_field.multiple, False)
+            self.assertEqual(select_field.checkable, False)
+            self.assertEqual(select_field.checked, False)
+            self.assertEqual(
+                select_field.options,
+                ['C', 'Java', 'Erlang', 'Python', 'Lisp'])
+
+            self.assertRaises(
+                AssertionError, setattr, select_field, 'value', 'C#')
+            select_field.value = 'C'
+            self.assertEqual(select_field.value, 'C')
+
+            submit_field = form.get_control('choose')
+            submit_field.submit()
+
+            self.assertEqual(browser.location, '/submit.html')
+            self.assertTrue(
+                '<ul><li>choose: Choose</li><li>language: C</li></ul>'
                 in browser.contents)
 
     def test_textarea(self):
