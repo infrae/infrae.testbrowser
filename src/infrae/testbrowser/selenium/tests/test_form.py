@@ -127,7 +127,7 @@ class FormTestCase(unittest.TestCase):
 
             self.assertEqual(browser.location, '/submit.html')
             self.assertTrue(
-                '<ul><li>choose: Choose</li><li>language: C</li></ul>'
+                '<ul><li>choose: Choose</li><li>giberish: German</li><li>language: C</li></ul>'
                 in browser.contents)
 
     def test_multi_select(self):
@@ -160,9 +160,9 @@ class FormTestCase(unittest.TestCase):
             submit_field.submit()
 
             self.assertEqual(browser.location, '/submit.html')
-            self.assertEqual(
-                browser.html.xpath('//ul/li/text()'),
-                ['choose: Choose', 'language: C', 'language: Python', 'language: Lisp'])
+            self.assertTrue(
+                '<ul><li>choose: Choose</li><li>language: C</li><li>language: Python</li><li>language: Lisp</li></ul>'
+                in browser.contents)
 
     def test_textarea(self):
         with Browser(app.TestAppTemplate('textarea_form.html')) as browser:

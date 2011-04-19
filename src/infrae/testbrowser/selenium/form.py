@@ -3,7 +3,9 @@
 # See also LICENSE.txt
 # $Id$
 
+import itertools
 import collections
+import operator
 
 from infrae.testbrowser.interfaces import IFormControl, IForm
 from infrae.testbrowser.utils import parse_charset, resolve_location
@@ -52,11 +54,32 @@ class Control(object):
     @apply
     def value():
         def getter(self):
+            if self.__multiple:
+                return map(operator.itemgetter(0),
+                           filter(lambda (name, option): option.is_selected,
+                                  self.__options.items()))
             return self._element.value
         def setter(self, value):
             if self.__type == 'select':
-                assert value in self.__options, u'Invalid value %s selected' % value
-                self.__options[value].select()
+                if self.__multiple:
+                    if isinstance(value, basestring):
+                        value = [value]
+                    value = set(value)
+                    valid_value = set(self.__options.keys())
+                    assert not value.difference(valid_value), \
+                        u'Invalid value selected'
+                    selected = set(filter(
+                            lambda option: option.is_selected,
+                            self.__options.values()))
+                    wanted = set(map(lambda v: self.__options[v], value))
+                    for option in selected.difference(wanted):
+                        option.toggle()
+                    for option in wanted.difference(selected):
+                        option.select()
+                else:
+                    assert value in self.__options, \
+                        u'Invalid value %s selected' % value
+                    self.__options[value].select()
             else:
                 if not isinstance(value, basestring):
                     raise AssertionError(

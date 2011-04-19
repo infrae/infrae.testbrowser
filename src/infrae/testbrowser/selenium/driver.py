@@ -29,7 +29,7 @@ class Connection(object):
         data = simplejson.dumps(parameters) if parameters else None
         request = utils.HTTPRequest(url=url, data=data, method=method)
         request.add_header('Accept', 'application/json')
-        print method, url, data
+        #print method, url, data
         try:
             return self.validate(self.receive(self.open(request)))
         except urllib2.URLError:
@@ -238,7 +238,7 @@ class SeleniumElement(object):
         return self.__send('GET', '/selected')['value']
 
     def send_keys(self, keys):
-        self.__send('POST', '/value', {'value': keys})
+        self.__send('POST', '/value', {'value': list(keys)})
 
     def select(self):
         self.__send('POST', '/selected')
@@ -251,6 +251,9 @@ class SeleniumElement(object):
 
     def submit(self):
         self.__send('POST', '/submit')
+
+    def toggle(self):
+        return self.__send('POST', '/toggle')['value']
 
     def get_attribute(self, name):
         return self.__send('GET', ''.join(('/attribute/', name)))['value']
