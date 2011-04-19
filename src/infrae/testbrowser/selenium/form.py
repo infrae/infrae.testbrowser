@@ -54,13 +54,17 @@ class Control(object):
     @apply
     def value():
         def getter(self):
-            if self.__multiple:
-                return map(operator.itemgetter(0),
-                           filter(lambda (name, option): option.is_selected,
-                                  self.__options.items()))
+            if self.__type in ['select', 'radio']:
+                values = map(operator.itemgetter(0),
+                               filter(lambda (name, option): option.is_selected,
+                                      self.__options.items()))
+                if self.__multiple:
+                    return values
+                assert len(values) < 2
+                return values and values[0] or None
             return self._element.value
         def setter(self, value):
-            if self.__type == 'select':
+            if self.__type in ['select', 'radio']:
                 if self.__multiple:
                     if isinstance(value, basestring):
                         value = [value]
@@ -77,7 +81,7 @@ class Control(object):
                     for option in wanted.difference(selected):
                         option.select()
                 else:
-                    assert value in self.__options, \
+                    assert value in self.__options.keys(), \
                         u'Invalid value %s selected' % value
                     self.__options[value].select()
             else:
@@ -115,8 +119,20 @@ class Control(object):
             self.__checked = bool(value)
         return property(getter, setter)
 
-    def _extend(self, html):
-        pass
+    def _extend(self, element):
+        element_type = element.get_attribute('type') or 'submit'
+        assert self.__type ==  element_type, \
+            u'Control extended with a different control type'
+        if self.__type == 'submit':
+            # We authorize to have more than one submit with the same name
+            return
+        assert self.__type in ['checkbox', 'radio'], \
+            u'Only checkbox and radio can be multiple inputs'
+        if not self.options:
+            self.__options = {self._element.value: self._element}
+            if self.__type == 'checkbox':
+                self.__multiple = True
+        self.__options[element.value] = element
 
 
 class ButtonControl(Control):

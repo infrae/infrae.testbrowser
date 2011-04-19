@@ -120,14 +120,12 @@ class Control(object):
 
     def _extend(self, html):
         assert self.__type == html.get('type', 'submit'), \
-            u'%s: control extended with a control type' % html.name
+            u'%s: control extended with a different control type' % html.name
         if self.__type == 'submit':
             # We authorize to have more than one submit with the same name
             return
         assert self.__type in ['checkbox', 'radio'], \
             u'%s: only checkbox and radio can be multiple inputs' % html.name
-        assert self.name  == html.name, \
-            u'%s: control extended with a different input' % html.name
         if not self.options:
             # Firt time the control is extended
             self.html = [self.html]
