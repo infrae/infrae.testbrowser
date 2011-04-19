@@ -20,17 +20,17 @@ class Control(object):
         self.__name = element.get_attribute('name')
         assert self.__name is not None
         self.__multiple = False
-        if element.tag_name == 'select':
+        if element.tag == 'select':
             self.__type = 'select'
             self.__multiple = element.get_attribute('multiple') != 'false'
             self.__options = collections.OrderedDict()
-            for option in element.find_elements_by_xpath('descendant::option'):
+            for option in element.get_elements(xpath='descendant::option'):
                 value = option.get_attribute('value')
                 if value is None:
                     value = option.text
                 self.__options[value] = option
         else:
-            if element.tag_name == 'textarea':
+            if element.tag == 'textarea':
                 self.__type = 'textarea'
             else:
                 self.__type = element.get_attribute('type') or 'submit'
@@ -129,10 +129,10 @@ class Form(object):
         self.__populate_controls()
 
     def __populate_controls(self):
-        find_element = self.__element.find_elements_by_xpath
+        get_elements = self.__element.get_elements
 
         # Input tags
-        for input_element in find_element('descendant::input'):
+        for input_element in get_elements(xpath='descendant::input'):
             input_name = input_element.get_attribute('name')
             if not input_name:
                 # Not usefull for our form
@@ -145,7 +145,7 @@ class Form(object):
                 self.controls[input_name] = factory(self, input_element)
 
         # Select tags
-        for select_node in find_element('descendant::select'):
+        for select_node in get_elements(xpath='descendant::select'):
             select_name = select_node.get_attribute('name')
             if not select_name:
                 # No name, not a concern
@@ -154,7 +154,7 @@ class Form(object):
             self.controls[select_name] = Control(self, select_node)
 
         # Textarea tags
-        for text_node in find_element('descendant::textarea'):
+        for text_node in get_elements(xpath='descendant::textarea'):
             text_name = text_node.get_attribute('name')
             if not text_name:
                 # No name, not a concern

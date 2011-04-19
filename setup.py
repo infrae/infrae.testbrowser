@@ -3,11 +3,7 @@ import os
 
 version = '2.0dev'
 
-selenium_require = [
-    'selenium'
-]
 tests_require = [
-    'selenium',
     'zope.testing',
 ]
 
@@ -37,7 +33,6 @@ setup(name='infrae.testbrowser',
         'lxml',
         'zope.interface',
         ],
-      extras_require = {'selenium': selenium_require,
-                        'test': tests_require},
+      extras_require = {'test': tests_require},
       tests_require = tests_require,
       )

@@ -15,7 +15,7 @@ def node_to_text(node):
 
 def tag_filter(name):
     def element_filter(element):
-        return element.tag_name == name
+        return element.tag == name
     return element_filter
 
 
@@ -73,9 +73,9 @@ class Expressions(object):
         assert type in EXPRESSION_TYPE, u'Unknown expression type %s' % type
         finder = None
         if xpath is not None:
-            finder = lambda d: d.find_elements_by_xpath(xpath)
+            finder = lambda d: d.get_elements(xpath=xpath)
         elif css is not None:
-            finder = lambda d: d.find_elements_by_css_selector(css)
+            finder = lambda d: d.get_elements(css=css)
         assert finder is not None, u'You need to provide an XPath or CSS expression'
         self.__expressions[name] = (finder, type)
 

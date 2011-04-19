@@ -3,69 +3,18 @@
 # See also LICENSE.txt
 # $Id$
 
-import urllib2
 import urlparse
-import atexit
 
 from infrae.testbrowser.interfaces import IBrowser, _marker
 from infrae.testbrowser.interfaces import ISeleniumCustomizableOptions
+from infrae.testbrowser.selenium.driver import DRIVERS
 from infrae.testbrowser.selenium.expressions import Expressions, Link
 from infrae.testbrowser.selenium.form import Form
 from infrae.testbrowser.selenium.server import Server
 from infrae.testbrowser.selenium.utils import get_current_platform
 from infrae.testbrowser.utils import Macros, CustomizableOptions
 
-import selenium.webdriver
 from zope.interface import implements
-from zope.testing.cleanup import addCleanUp
-
-
-class SeleniumDrivers(object):
-    """Manage all active Selenium drivers.
-    """
-
-    def __init__(self):
-        self.__drivers = {}
-
-    def get(self, options):
-        """Return a Selenium driver associated to this set of options.
-        """
-        command_executor = 'http://%s:%s/wd/hub' % (
-            options.selenium_host,
-            options.selenium_port)
-        driver_key = (command_executor,
-                      options.selenium_platform,
-                      options.browser)
-        if driver_key in self.__drivers:
-            return self.__drivers[driver_key]
-
-        try:
-            driver = selenium.webdriver.Remote(
-                command_executor=command_executor,
-                desired_capabilities={
-                    'browserName': options.browser,
-                    'javascriptEnabled': options.enable_javascript,
-                    'platform': options.selenium_platform})
-            self.__drivers[driver_key] = driver
-            return driver
-        except urllib2.URLError as error:
-            raise AssertionError(u"Could not connect to remote Selenium %s: %s" % (
-                    command_executor, str(error)))
-
-    def all(self):
-        for key, driver in self.__drivers.iteritems():
-            yield driver
-
-    def clear(self):
-        for driver in self.all():
-            driver.close()
-            driver.stop_client()
-        self.__drivers = {}
-
-
-DRIVERS = SeleniumDrivers()
-addCleanUp(DRIVERS.clear)
-atexit.register(DRIVERS.clear)
 
 
 class Options(CustomizableOptions):
@@ -105,7 +54,7 @@ class Browser(object):
     @property
     def url(self):
         if self.__driver is not None:
-            return self.__driver.current_url
+            return self.__driver.url
         return None
 
     @property
@@ -118,7 +67,7 @@ class Browser(object):
     @property
     def contents(self):
         if self.__driver is not None:
-            return self.__driver.get_page_source()
+            return self.__driver.contents
         return None
 
     def __verify_driver(self):
@@ -155,7 +104,7 @@ class Browser(object):
 
     def open(self, url):
         self.__verify_driver()
-        self.__driver.get(self.__absolute_url(url))
+        self.__driver.open(self.__absolute_url(url))
 
     def reload(self):
         assert self.__driver is not None, u'Nothing loaded to reload'
@@ -169,13 +118,13 @@ class Browser(object):
         elif id is not None:
             expression = '//form[@id="%s"]' % id
         assert expression is not None, u'Provides an id or a name to get_form'
-        elements = self.__driver.find_elements_by_xpath(expression)
+        elements = self.__driver.get_elements(xpath=expression)
         assert len(elements) == 1, u'No form found'
         return Form(elements[0])
 
     def get_link(self, content):
         assert self.__driver is not None, u'Not viewing anything'
-        elements = self.__driver.find_elements_by_link_text(content)
+        elements = self.__driver.get_elements(link=content)
         assert len(elements) == 1, u'No link found'
         return Link(elements[0])
 
