@@ -3,7 +3,6 @@
 # See also LICENSE.txt
 # $Id$
 
-import itertools
 import collections
 import operator
 
@@ -22,7 +21,8 @@ class Control(object):
         self.__name = element.get_attribute('name')
         assert self.__name is not None
         self.__multiple = False
-        if element.tag == 'select':
+        tag_name = element.tag
+        if tag_name == 'select':
             self.__type = 'select'
             self.__multiple = element.get_attribute('multiple') != 'false'
             self.__options = collections.OrderedDict()
@@ -32,12 +32,13 @@ class Control(object):
                     value = option.text
                 self.__options[value] = option
         else:
-            if element.tag == 'textarea':
+            if tag_name == 'textarea':
                 self.__type = 'textarea'
             else:
                 self.__type = element.get_attribute('type') or 'submit'
-            self.__options = {}
-        self.__checked = False
+            self.__options = collections.OrderedDict()
+            if self.__type in ['checkbox', 'radio']:
+                self.__options[element.value] = element
 
     @apply
     def name():
@@ -54,17 +55,17 @@ class Control(object):
     @apply
     def value():
         def getter(self):
-            if self.__type in ['select', 'radio']:
+            if self.__type in ['select', 'radio', 'checkbox']:
                 values = map(operator.itemgetter(0),
                                filter(lambda (name, option): option.is_selected,
                                       self.__options.items()))
                 if self.__multiple:
                     return values
                 assert len(values) < 2
-                return values and values[0] or None
+                return values and values[0] or ''
             return self._element.value
         def setter(self, value):
-            if self.__type in ['select', 'radio']:
+            if self.__type in ['select', 'radio', 'checkbox']:
                 if self.__multiple:
                     if isinstance(value, basestring):
                         value = [value]
@@ -101,22 +102,30 @@ class Control(object):
     @apply
     def options():
         def getter(self):
-            return self.__options.keys()
+            if len(self.__options) > 1 or self.__type == 'select':
+                return self.__options.keys()
+            return []
         return property(getter)
 
     @apply
     def checkable():
         def getter(self):
-            return self.__type in ['checkbox', 'radio'] and not self.__options
+            return self.__type in ['checkbox', 'radio'] and len(self.__options) < 2
         return property(getter)
 
     @apply
     def checked():
         def getter(self):
-            return self.__checked
+            if self.checkable:
+                if not self.__multiple:
+                    return self._element.is_selected
+            return False
         def setter(self, value):
             assert self.checkable, u"Not checkable"
-            self.__checked = bool(value)
+            if not self.__multiple:
+                status = self._element.is_selected
+                if status != value:
+                    self._element.toggle()
         return property(getter, setter)
 
     def _extend(self, element):
@@ -128,10 +137,8 @@ class Control(object):
             return
         assert self.__type in ['checkbox', 'radio'], \
             u'Only checkbox and radio can be multiple inputs'
-        if not self.options:
-            self.__options = {self._element.value: self._element}
-            if self.__type == 'checkbox':
-                self.__multiple = True
+        if self.__type == 'checkbox':
+            self.__multiple = True
         self.__options[element.value] = element
 
 

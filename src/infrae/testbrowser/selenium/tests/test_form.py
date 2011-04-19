@@ -98,6 +98,82 @@ class FormTestCase(unittest.TestCase):
                 '<ul><li>login: arthur</li><li>password: secret</li><li>save: Save</li></ul>'
                 in browser.contents)
 
+    def test_checkbox_input(self):
+        with Browser(app.TestAppTemplate('checkbox_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('isitrueform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 3)
+
+            true_field = form.get_control('true')
+            self.assertNotEqual(true_field, None)
+            self.assertTrue(verifyObject(IFormControl, true_field))
+            self.assertEqual(true_field.value, '')
+            self.assertEqual(true_field.type, 'checkbox')
+            self.assertEqual(true_field.multiple, False)
+            self.assertEqual(true_field.checkable, True)
+            self.assertEqual(true_field.checked, False)
+            self.assertEqual(true_field.options, [])
+
+            false_field = form.get_control('false')
+            self.assertNotEqual(false_field, None)
+            self.assertTrue(verifyObject(IFormControl, false_field))
+            self.assertEqual(false_field.value, 'No')
+            self.assertEqual(false_field.type, 'checkbox')
+            self.assertEqual(false_field.multiple, False)
+            self.assertEqual(false_field.checkable, True)
+            self.assertEqual(false_field.checked, True)
+            self.assertEqual(false_field.options, [])
+
+            true_field.checked = True
+            false_field.checked = False
+            self.assertEqual(true_field.value, 'Yes')
+            self.assertEqual(true_field.checked, True)
+            self.assertEqual(false_field.value, '')
+            self.assertEqual(false_field.checked, False)
+
+            submit_field = form.get_control('send')
+            submit_field.submit()
+
+            self.assertEqual(browser.location, '/submit.html')
+            self.assertTrue(
+                '<ul><li>send: Send</li><li>true: Yes</li></ul>'
+                in browser.contents)
+
+    def test_multi_checkbox_input(self):
+        with Browser(app.TestAppTemplate('multicheckbox_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('langform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 2)
+
+            multicheck_field = form.get_control('language')
+            self.assertNotEqual(multicheck_field, None)
+            self.assertTrue(verifyObject(IFormControl, multicheck_field))
+            self.assertEqual(multicheck_field.value, ['Python', 'Lisp'])
+            self.assertEqual(multicheck_field.type, 'checkbox')
+            self.assertEqual(multicheck_field.multiple, True)
+            self.assertEqual(multicheck_field.checkable, False)
+            self.assertEqual(multicheck_field.checked, False)
+            self.assertEqual(
+                multicheck_field.options,
+                ['C', 'Java', 'Erlang', 'Python', 'Lisp'])
+
+            self.assertRaises(
+                AssertionError, setattr, multicheck_field, 'value', 'C#')
+            multicheck_field.value = 'Erlang'
+            self.assertEqual(multicheck_field.value, ['Erlang'])
+            multicheck_field.value = ['C', 'Python', 'Lisp']
+            self.assertEqual(multicheck_field.value, ['C', 'Python', 'Lisp'])
+
+            submit_field = form.get_control('choose')
+            submit_field.submit()
+
+            self.assertEqual(browser.location, '/submit.html')
+            self.assertTrue(
+                '<ul><li>choose: Choose</li><li>language: C</li><li>language: Python</li><li>language: Lisp</li></ul>'
+                in browser.contents)
+
     def test_select(self):
         with Browser(app.TestAppTemplate('select_form.html')) as browser:
             browser.open('/index.html')
