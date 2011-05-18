@@ -7,7 +7,7 @@ import functools
 import lxml.etree
 
 from infrae.testbrowser.interfaces import IFormControl, IForm
-from infrae.testbrowser.utils import ExpressionResult
+from infrae.testbrowser.expressions import ControlExpressions
 from infrae.testbrowser.utils import File, resolve_url
 from infrae.testbrowser.utils import parse_charset, charset_encoder
 
@@ -173,7 +173,7 @@ class Control(object):
             map(lambda h:lxml.etree.tostring(h, pretty_print=True), html))
 
 
-class ButtonControl(Control):
+class SubmitControl(Control):
 
     def __init__(self, form, html):
         super(ButtonControl, self).__init__(form, html)
@@ -191,45 +191,18 @@ class ButtonControl(Control):
         return [(self.name, encoder(self.value))]
 
 
+class ButtonControl(Control):
+
+    def submit(self):
+        pass
+
+    click = submit
+
+
 FORM_ELEMENT_IMPLEMENTATION = {
-    'submit': ButtonControl,
-    'image': ButtonControl}
-
-
-class Controls(ExpressionResult):
-
-    def __init__(self, controls, name):
-
-        def prepare(control):
-            key = getattr(control, name, 'missing')
-            return (key.lower(), key, control)
-
-        super(Controls, self).__init__(map(prepare, controls))
-
-
-class ControlExpressions(object):
-
-    def __init__(self, form):
-        self.__form = form
-        self.__expressions = {}
-
-    def add(self, name, expression):
-        self.__expressions[name] = expression
-
-    def __getattr__(self, name):
-        if name in self.__expressions:
-            expression = self.__expressions[name]
-
-            def matcher(control):
-                for key, value in expression[0].items():
-                    if getattr(control, key, None) != value:
-                        return False
-                return True
-
-            return Controls(
-                filter(matcher, self.__form.controls.values()),
-                expression[1])
-        raise AttributeError(name)
+    'button': ButtonControl,
+    'submit': SubmitControl,
+    'image': SubmitControl}
 
 
 class Form(object):
@@ -297,7 +270,9 @@ class Form(object):
                 continue
             assert button_name not in self.controls, \
                 u'Duplicate input %s in form %s' % (button_name, self.name)
-            self.controls[button_name] = ButtonControl(self, button_node)
+            button_type = input_node.get('type', 'submit')
+            factory = FORM_ELEMENT_IMPLEMENTATION.get(button_type, ButtonControl)
+            self.controls[button_name] = factory(self, button_node)
             self.__control_names.append(button_name)
 
     def get_control(self, name):

@@ -105,3 +105,39 @@ class Expressions(object):
                                       expression(self.__browser.html))),
                            self.__browser)
         raise AttributeError(name)
+
+
+class Controls(ExpressionResult):
+
+    def __init__(self, controls, name):
+
+        def prepare(control):
+            key = getattr(control, name, 'missing')
+            return (key.lower(), key, control)
+
+        super(Controls, self).__init__(map(prepare, controls))
+
+
+class ControlExpressions(object):
+
+    def __init__(self, form):
+        self.__form = form
+        self.__expressions = {}
+
+    def add(self, name, expression):
+        self.__expressions[name] = expression
+
+    def __getattr__(self, name):
+        if name in self.__expressions:
+            expression = self.__expressions[name]
+
+            def matcher(control):
+                for key, value in expression[0].items():
+                    if getattr(control, key, None) != value:
+                        return False
+                return True
+
+            return Controls(
+                filter(matcher, self.__form.controls.values()),
+                expression[1])
+        raise AttributeError(name)

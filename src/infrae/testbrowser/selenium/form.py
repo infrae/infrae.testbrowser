@@ -7,6 +7,7 @@ import collections
 import operator
 
 from infrae.testbrowser.interfaces import IFormControl, IForm
+from infrae.testbrowser.expressions import ControlExpressions
 from infrae.testbrowser.utils import parse_charset, resolve_location
 
 from zope.interface import implements
@@ -152,6 +153,7 @@ class ButtonControl(Control):
 
 FORM_ELEMENT_IMPLEMENTATION = {
     'submit': ButtonControl,
+    'button': ButtonControl,
     'image': ButtonControl}
 
 
@@ -171,6 +173,8 @@ class Form(object):
         self.accept_charset = parse_charset(
             element.get_attribute('accept-charset') or 'utf-8')
         self.controls = {}
+        self.inspect = ControlExpressions(self)
+        self.inspect.add('actions', ({'type': 'submit'}, 'value'))
         self.__element = element
         self.__populate_controls()
 
@@ -207,6 +211,18 @@ class Form(object):
                 continue
             assert text_name not in self.controls
             self.controls[text_name] = Control(self, text_node)
+
+        # Button tags
+        for button_node in get_elements(xpath='descendant::button'):
+            button_name = button_node.get_attribute('name')
+            if not button_name:
+                # No name, not a concern
+                continue
+            assert button_name not in self.controls
+            button_type = button_node.get_attribute('type') or 'submit'
+            factory = FORM_ELEMENT_IMPLEMENTATION.get(button_type, ButtonControl)
+            self.controls[button_name] = factory(self, button_node)
+
 
     def get_control(self, name):
         if name not in self.controls:

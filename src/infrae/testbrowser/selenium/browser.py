@@ -40,6 +40,7 @@ class Browser(object):
         self.options = Options()
         self.inspect = Expressions(lambda f: f(self.__driver))
         self.macros = Macros(self)
+        self.handlers = {}
         self.__server = Server(app, self.options)
         self.__driver = None
         self.__user = None
@@ -95,12 +96,18 @@ class Browser(object):
     def login(self, user, password=_marker):
         if password is _marker:
             password = user
-        self.__user = user
-        self.__password = password
+        if 'login' in self.handlers:
+            self.handlers['login'].login(self, user, password)
+        else:
+            self.__user = user
+            self.__password = password
 
     def logout(self):
-        self.__user = None
-        self.__password = None
+        if 'login' in self.handlers:
+            self.handlers['login'].logout(self)
+        else:
+            self.__user = None
+            self.__password = None
 
     def open(self, url):
         self.__verify_driver()
