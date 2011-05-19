@@ -145,6 +145,8 @@ class Browser(object):
     def open(self, url):
         self.__verify_driver()
         self.__driver.open(self.__absolute_url(url))
+        if 'open' in self.handlers:
+            self.handlers.open(self, self.__driver)
 
     def reload(self):
         assert self.__driver is not None, u'Nothing loaded to reload'
