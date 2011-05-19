@@ -265,7 +265,7 @@ class Form(object):
             self.__control_names.append(text_name)
 
         # Button tags
-        for button_node in self.html.xpath('//button'):
+        for button_node in self.html.xpath('descendant::button'):
             button_name = button_node.get('name', None)
             if not button_name:
                 # No name, not a concern
