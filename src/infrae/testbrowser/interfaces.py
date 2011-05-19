@@ -11,6 +11,11 @@ _marker = object()
 class IBrowser(Interface):
     """Test browser interface.
     """
+    inspect = Attribute(u"Browser Expression (inspect current HTML)")
+    macros = Attribute(u"Browser macros")
+    options = Attribute(u"Options")
+    handlers = Attribute(u"Handlers used to customize browser behavior")
+
     url = Attribute(u"Currently viewed URL")
     location = Attribute(u"Currently viewed path")
     contents = Attribute(u"Payload")

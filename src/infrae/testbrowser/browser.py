@@ -12,7 +12,7 @@ from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
 from infrae.testbrowser.interfaces import IAdvancedBrowser, _marker
 from infrae.testbrowser.interfaces import ICustomizableOptions
-from infrae.testbrowser.utils import Macros, CustomizableOptions
+from infrae.testbrowser.utils import Macros, CustomizableOptions, Handlers
 from infrae.testbrowser.utils import encode_multipart_form_data, format_auth
 from infrae.testbrowser.wsgi import WSGIServer
 
@@ -43,6 +43,7 @@ class Browser(object):
         self.options = Options()
         self.inspect = Expressions(self)
         self.macros = Macros(self)
+        self.handlers = Handlers()
         self.__server = WSGIServer(app, self.options)
         self.__url = None
         self.__method = None
@@ -121,14 +122,21 @@ class Browser(object):
 
     def login(self, user, password=_marker):
         if user is None:
-            self.del_request_header('Authorization')
+            self.logout()
+        if password is _marker:
+            password = user
+        if 'login' in self.handlers:
+            self.handlers.login.login(self, user, password)
         else:
             if password is _marker:
                 password = user
             self.set_request_header('Authorization', format_auth(user, password))
 
     def logout(self):
-        self.del_request_header('Authorization')
+        if 'login' in self.handlers:
+            self.handlers.login.logout(self)
+        else:
+            self.del_request_header('Authorization')
 
     @property
     def history(self):
@@ -247,4 +255,5 @@ class Browser(object):
         return Link(urls.values()[0], self)
 
     def close(self):
-        pass
+        if 'close' in self.handlers:
+            self.handlers.close(self)

@@ -182,6 +182,53 @@ class ExpressionResult(object):
         return repr(map(operator.itemgetter(1), self.__values))
 
 
+_marker = object()
+
+
+class Handlers(object):
+    """Browser handlers.
+    """
+
+    def __init__(self):
+        self.__handlers = {}
+
+    def add(self, name, handler, unique=False):
+        if unique:
+            if name not in self.__handlers:
+                self.__handlers[name] = []
+            self.__handlers[name].append(handler)
+        else:
+            self.__handlers[name] = handler
+
+    def __contains__(self, name):
+        return name in self.__handlers
+
+    def get(self, name, default=None):
+        if name not in self.__handlers:
+            return default
+
+        handlers = self.__handlers[name]
+        if isinstance(handlers, list):
+            def wrapper(*args, **kwargs):
+                for handler in handlers:
+                    handler(*args, **kwargs)
+
+            return wrapper
+        return handlers
+
+    def __getitem__(self, name):
+        handler = self.get(name, _marker)
+        if handler is _marker:
+            raise KeyError(name)
+        return handler
+
+    def __getattr__(self, name):
+        handler = self.get(name, _marker)
+        if handler is _marker:
+            raise AttributeError(name)
+        return handler
+
+
 class Macros(object):
     """Browser macros.
     """

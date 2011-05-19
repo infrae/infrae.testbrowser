@@ -12,7 +12,7 @@ from infrae.testbrowser.selenium.expressions import Expressions, Link
 from infrae.testbrowser.selenium.form import Form
 from infrae.testbrowser.selenium.server import Server
 from infrae.testbrowser.selenium.utils import get_current_platform
-from infrae.testbrowser.utils import Macros, CustomizableOptions
+from infrae.testbrowser.utils import Macros, CustomizableOptions, Handlers
 
 from zope.interface import implements
 
@@ -69,7 +69,7 @@ class Browser(object):
         self.options = Options()
         self.inspect = Expressions(lambda f: f(self.__driver))
         self.macros = Macros(self)
-        self.handlers = {}
+        self.handlers = Handlers()
         self.__server = Server(app, self.options)
         self.__driver = None
         self.__user = None
@@ -125,17 +125,19 @@ class Browser(object):
         return urlparse.urlunparse(url_parts)
 
     def login(self, user, password=_marker):
+        if user is None:
+            self.logout()
         if password is _marker:
             password = user
         if 'login' in self.handlers:
-            self.handlers['login'].login(self, user, password)
+            self.handlers.login.login(self, user, password)
         else:
             self.__user = user
             self.__password = password
 
     def logout(self):
         if 'login' in self.handlers:
-            self.handlers['login'].logout(self)
+            self.handlers.login.logout(self)
         else:
             self.__user = None
             self.__password = None
@@ -167,4 +169,6 @@ class Browser(object):
         return Link(elements[0])
 
     def close(self):
+        if 'close' in self.handlers:
+            self.handlers.close(self)
         self.__server.stop()
