@@ -46,9 +46,11 @@ class Link(object):
 class Links(ExpressionResult):
 
     def __init__(self, links):
+        # Not visible links have an empty text. We have no other to filter them out.
         super(Links, self).__init__(
             map(lambda link: (str(link).lower(), str(link), link),
-                map(lambda link: Link(link), links)))
+                filter(lambda link: str(link),
+                       map(lambda link: Link(link), links))))
 
 
 EXPRESSION_TYPE = {

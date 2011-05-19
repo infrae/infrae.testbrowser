@@ -80,10 +80,11 @@ class Selenium(object):
         self.__connection = Connection(
             'http://%s:%s/wd/hub' % (host, port))
 
-    def new_session(self, **options):
+    def new_session(self, options, element_proxy=None):
         data = self.__connection.send(
             'POST', '/session', {'desiredCapabilities': options})
-        return SeleniumSession(self.__connection, data)
+        return SeleniumSession(
+            self.__connection, data, element_proxy)
 
 
 class Seleniums(object):
@@ -93,22 +94,23 @@ class Seleniums(object):
     def __init__(self):
         self.__sessions = {}
 
-    def get(self, options):
+    def get(self, connection_options, element_proxy=None):
         """Return a Selenium driver associated to this set of options.
         """
-        key = (options.selenium_host,
-               options.selenium_port,
-               options.selenium_platform,
-               options.browser)
+        key = (connection_options.selenium_host,
+               connection_options.selenium_port,
+               connection_options.selenium_platform,
+               connection_options.browser)
         if key in self.__sessions:
             return self.__sessions[key]
 
         session = Selenium(
-            options.selenium_host,
-            options.selenium_port).new_session(
-            **{'browserName': options.browser,
-               'javascriptEnabled': options.enable_javascript,
-               'platform': options.selenium_platform})
+            connection_options.selenium_host,
+            connection_options.selenium_port).new_session(
+            {'browserName': connection_options.browser,
+             'javascriptEnabled': connection_options.enable_javascript,
+             'platform': connection_options.selenium_platform},
+            element_proxy)
         self.__sessions[key] = session
         return session
 
@@ -147,10 +149,12 @@ class SeleniumSession(object):
     """A selenium session.
     """
 
-    def __init__(self, connection, info):
+    def __init__(self, connection, info, element_proxy=None):
         self.__connection = connection
         self.__path = ''.join(('/session/', info['sessionId']))
         self.__capabilities = info['value']
+        self.__element_proxy = element_proxy
+        self.__send('POST', '/timeouts/async_script', {'ms': 120000})
 
     def __send(self, method, path, data=None):
         return self.__connection.send(
@@ -183,11 +187,19 @@ class SeleniumSession(object):
     def close(self):
         self.__send('DELETE', '/window')
 
+    def execute(self, script, args):
+        return self.__send(
+            'POST', '/execute_async',
+            {'script': script, 'args': args})['value']
+
     def quit(self):
         self.__send('DELETE', '')
 
     def __element_factory(self, data):
-        return SeleniumElement(self.__connection, self.__path, data)
+        element = SeleniumElement(self.__connection, self.__path, data)
+        if self.__element_proxy is not None:
+            element = self.__element_proxy(self, element)
+        return element
 
     def get_active_element(self):
         data = self.__send('POST', '/element/active')

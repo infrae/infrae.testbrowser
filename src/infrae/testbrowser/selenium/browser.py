@@ -33,6 +33,35 @@ class Options(CustomizableOptions):
             self.selenium_platform = get_current_platform()
 
 
+
+def SeleniumElementProxyFactory(browser):
+    """Call browser handlers if need when a SeleniumElement method is called.
+    """
+
+    class  SeleniumElementProxy(object):
+
+        def __init__(self, session, element):
+            self.__session = session
+            self.__element = element
+
+        def __getattr__(self, name):
+            attribute = getattr(self.__element, name)
+            if callable(attribute):
+                handler = browser.handlers.get('on' + name)
+                if handler is not None:
+
+                    def wrapper(*args, **kwargs):
+                        value = attribute(*args, **kwargs)
+                        handler(browser, self.__session, self.__element, value)
+                        return value
+
+                    return wrapper
+
+            return attribute
+
+    return SeleniumElementProxy
+
+
 class Browser(object):
     implements(IBrowser)
 
@@ -73,7 +102,9 @@ class Browser(object):
 
     def __verify_driver(self):
         if self.__driver is None:
-            self.__driver = DRIVERS.get(self.options)
+            self.__driver = DRIVERS.get(
+                self.options,
+                SeleniumElementProxyFactory(self))
             self.__server.start()
 
     def __absolute_url(self, url):
