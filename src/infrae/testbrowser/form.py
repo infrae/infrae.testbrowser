@@ -7,6 +7,8 @@ import functools
 import lxml.etree
 
 from infrae.testbrowser.interfaces import IFormControl, IForm
+from infrae.testbrowser.interfaces import IClickableFormControl
+from infrae.testbrowser.interfaces import ISubmitableFormControl
 from infrae.testbrowser.expressions import ControlExpressions
 from infrae.testbrowser.utils import File, resolve_url
 from infrae.testbrowser.utils import parse_charset, charset_encoder
@@ -173,7 +175,15 @@ class Control(object):
             map(lambda h:lxml.etree.tostring(h, pretty_print=True), html))
 
 
+class ButtonControl(Control):
+    implements(IClickableFormControl)
+
+    def click(self):
+        pass
+
+
 class SubmitControl(Control):
+    implements(ISubmitableFormControl)
 
     def __init__(self, form, html):
         super(SubmitControl, self).__init__(form, html)
@@ -189,14 +199,6 @@ class SubmitControl(Control):
         if not self.__selected:
             return []
         return [(self.name, encoder(self.value))]
-
-
-class ButtonControl(Control):
-
-    def submit(self):
-        pass
-
-    click = submit
 
 
 FORM_ELEMENT_IMPLEMENTATION = {
@@ -270,7 +272,7 @@ class Form(object):
                 continue
             assert button_name not in self.controls, \
                 u'Duplicate input %s in form %s' % (button_name, self.name)
-            button_type = button_node.get('type', 'submit')
+            button_type = button_node.get('type', 'button')
             factory = FORM_ELEMENT_IMPLEMENTATION.get(button_type, ButtonControl)
             self.controls[button_name] = factory(self, button_node)
             self.__control_names.append(button_name)

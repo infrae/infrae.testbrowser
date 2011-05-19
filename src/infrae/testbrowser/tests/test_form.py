@@ -9,6 +9,8 @@ import unittest
 from infrae.testbrowser.browser import Browser
 from infrae.testbrowser.form import parse_charset
 from infrae.testbrowser.interfaces import IForm, IFormControl
+from infrae.testbrowser.interfaces import IClickableFormControl
+from infrae.testbrowser.interfaces import ISubmitableFormControl
 from infrae.testbrowser.tests import app
 
 from zope.interface.verify import verifyObject
@@ -136,7 +138,7 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(submit_field.checkable, False)
         self.assertEqual(submit_field.checked, False)
         self.assertEqual(submit_field.options, [])
-        self.assertTrue(hasattr(submit_field, 'submit'))
+        self.assertTrue(verifyObject(ISubmitableFormControl, submit_field))
 
         self.assertEqual(submit_field.submit(), 200)
         self.assertEqual(browser.url, '/submit.html')
@@ -392,6 +394,23 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(
             browser.html.xpath('//ul/li/text()'),
             ['send: Send'])
+
+    def test_button(self):
+        browser = Browser(app.TestAppTemplate('button_form.html'))
+        browser.open('/index.html')
+        form = browser.get_form('dreamform')
+        self.assertNotEqual(form, None)
+        self.assertEqual(len(form.controls), 4)
+
+        cancel_button = form.get_control('cancel')
+        self.assertTrue(verifyObject(IClickableFormControl, cancel_button))
+        self.assertFalse(ISubmitableFormControl.providedBy(cancel_button))
+        cancel_button.click()   # This does nothing.
+
+        lost_button = form.get_control('lost')
+        self.assertTrue(verifyObject(IClickableFormControl, lost_button))
+        self.assertFalse(ISubmitableFormControl.providedBy(lost_button))
+        lost_button.click()     # This does nothing.
 
     def test_lxml_regression(self):
         browser = Browser(app.TestAppTemplate('lxml_regression.html'))

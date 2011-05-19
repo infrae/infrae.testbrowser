@@ -110,6 +110,20 @@ class IFormControl(Interface):
     checked = Attribute(u"If the control is checkable, is it checked")
 
 
+class IClickableFormControl(IFormControl):
+
+    def click():
+        """Click that control.
+        """
+
+
+class ISubmitableFormControl(IClickableFormControl):
+
+    def submit():
+        """Submit the current form.
+        """
+
+
 class IForm(Interface):
     """Represent a form.
     """

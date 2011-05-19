@@ -219,7 +219,7 @@ class Form(object):
                 # No name, not a concern
                 continue
             assert button_name not in self.controls
-            button_type = button_node.get_attribute('type') or 'submit'
+            button_type = button_node.get_attribute('type') or 'button'
             factory = FORM_ELEMENT_IMPLEMENTATION.get(button_type, ButtonControl)
             self.controls[button_name] = factory(self, button_node)
 
