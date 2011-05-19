@@ -176,7 +176,7 @@ class Control(object):
 class SubmitControl(Control):
 
     def __init__(self, form, html):
-        super(ButtonControl, self).__init__(form, html)
+        super(SubmitControl, self).__init__(form, html)
         self.__selected = False
 
     def submit(self):
@@ -270,7 +270,7 @@ class Form(object):
                 continue
             assert button_name not in self.controls, \
                 u'Duplicate input %s in form %s' % (button_name, self.name)
-            button_type = input_node.get('type', 'submit')
+            button_type = button_node.get('type', 'submit')
             factory = FORM_ELEMENT_IMPLEMENTATION.get(button_type, ButtonControl)
             self.controls[button_name] = factory(self, button_node)
             self.__control_names.append(button_name)
