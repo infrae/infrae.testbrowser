@@ -6,7 +6,9 @@
 
 from collections import defaultdict
 
-from infrae.testbrowser.utils import node_to_node, none_filter
+from infrae.testbrowser.utils import node_to_node
+from infrae.testbrowser.utils import none_filter
+from infrae.testbrowser.utils import compound_filter_factory
 from infrae.testbrowser.utils import ExpressionResult
 
 
@@ -18,39 +20,50 @@ def tag_filter(name):
         return element.tag == name
     return element_filter
 
+def visible_filter(element):
+    return element.is_displayed
 
-class Link(object):
+
+class Clickable(object):
 
     def __init__(self, element):
         self.element = element
         self.text = element.text
+        self.__str = self.text
+        if not self.__str:
+            self.__str = '<%s />' % element.tag
+
+    def click(self):
+        self.element.click()
+
+    def __str__(self):
+        return str(self.__str)
+
+    def __unicode__(self):
+        return unicode(self.__str)
+
+    def __repr__(self):
+        return repr(str(self.__str))
+
+
+class Link(Clickable):
 
     @property
     def url(self):
         # XXX Need to make absolute
         return self.element.get_attribute('href')
 
-    def click(self):
-        self.element.click()
 
-    def __str__(self):
-        return str(self.text)
+def ClickablesFactory(factory):
 
-    def __unicode__(self):
-        return unicode(self.text)
+    class Clickables(ExpressionResult):
 
-    def __repr__(self):
-        return repr(unicode(self.text))
+        def __init__(self, items):
+            super(Clickables, self).__init__(
+                map(lambda item: (str(item).lower(), str(item), item),
+                    map(lambda item: factory(item), items)))
 
-
-class Links(ExpressionResult):
-
-    def __init__(self, links):
-        # Not visible links have an empty text. We have no other to filter them out.
-        super(Links, self).__init__(
-            map(lambda link: (str(link).lower(), str(link), link),
-                filter(lambda link: str(link),
-                       map(lambda link: Link(link), links))))
+    return Clickables
 
 
 EXPRESSION_TYPE = {
@@ -60,8 +73,12 @@ EXPRESSION_TYPE = {
         lambda elements: list(elements)),
     'link': (
         node_to_node,
-        tag_filter('a'),
-        Links),
+        compound_filter_factory(visible_filter, tag_filter('a')),
+        ClickablesFactory(Link)),
+    'clickable': (
+        node_to_node,
+        visible_filter,
+        ClickablesFactory(Clickable))
     }
 
 

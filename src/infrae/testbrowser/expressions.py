@@ -48,7 +48,7 @@ class Link(object):
         return unicode(self.text)
 
     def __repr__(self):
-        return repr(unicode(self.text))
+        return repr(str(self.text))
 
 
 class Links(ExpressionResult):

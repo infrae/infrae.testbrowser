@@ -80,12 +80,17 @@ class ExpressionsTestCase(unittest.TestCase):
                 ['Home ...', 'Development ...', 'Advanced Lisp ...'])
             self.assertEqual(len(browser.inspect.breadcrumbs), 3)
 
+            # In the same fashion you can iter through it as a list.
+            self.assertEqual(
+                repr(list(browser.inspect.breadcrumbs)),
+                repr(['Home ...', 'Development ...', 'Advanced Lisp ...']))
+
             links = browser.inspect.navigation
             self.assertTrue('home' in links)
             self.assertTrue('Home' in links)
             self.assertFalse('download' in links)
 
-            self.assertEqual(repr(links['contact']), repr(u'Contact'))
+            self.assertEqual(repr(links['contact']), repr('Contact'))
             self.assertEqual(links['contact'].text, 'Contact')
             self.assertEqual(links['contact'].url, '/contact.html')
             links['contact'].click()
@@ -121,3 +126,8 @@ class ExpressionsTestCase(unittest.TestCase):
                 browser.inspect.breadcrumbs.keys(),
                 ['Home ...', 'Development ...', 'Advanced Lisp ...'])
             self.assertEqual(len(browser.inspect.breadcrumbs), 3)
+
+            # In the same fashion you can iter through it as a list.
+            self.assertEqual(
+                repr(list(browser.inspect.breadcrumbs)),
+                repr(['Home ...', 'Development ...', 'Advanced Lisp ...']))

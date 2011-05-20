@@ -11,7 +11,7 @@ class SeleniumError(AssertionError):
     def __str__(self):
         message = self.__doc__
         if self.args:
-            message += ' '.join(self.args)
+            message += ' '.join(map(str, self.args))
         return message
 
 

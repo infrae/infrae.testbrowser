@@ -3,7 +3,7 @@
 # See also LICENSE.txt
 # $Id$
 
-import simplejson
+import json
 import atexit
 import urllib2
 
@@ -26,7 +26,7 @@ class Connection(object):
         """Send a query to Selenium.
         """
         url = ''.join((self.url, path))
-        data = simplejson.dumps(parameters) if parameters else None
+        data = json.dumps(parameters) if parameters else None
         request = utils.HTTPRequest(url=url, data=data, method=method)
         request.add_header('Accept', 'application/json')
         #print method, url, data
@@ -46,7 +46,7 @@ class Connection(object):
             body = response.read().replace('\x00', '').strip()
             content_type = response.info().getheader('Content-Type') or []
             if 'application/json' in content_type:
-                data = simplejson.loads(body)
+                data = json.loads(body)
                 assert type(data) is dict, 'Invalid server response'
                 assert 'status' in data, 'Invalid server response'
                 if 'value' not in data:

@@ -46,6 +46,11 @@ class ExpressionsTestCase(unittest.TestCase):
             browser.inspect.ingredients,
             ['Flour', 'Sugar', 'Butter'])
 
+        # You can call list of the inspect result.
+        self.assertEqual(
+            list(browser.inspect.values),
+            ['Flour', 'Sugar', 'Chocolate', 'Butter'])
+
     def test_text_css(self):
         browser = Browser(app.TestAppTemplate('text_expressions.html'))
         browser.inspect.add('values', css='li')
@@ -58,6 +63,11 @@ class ExpressionsTestCase(unittest.TestCase):
         self.assertEqual(
             browser.inspect.ingredients,
             ['Flour', 'Sugar', 'Butter'])
+
+        # You can call list of the inspect result.
+        self.assertEqual(
+            list(browser.inspect.values),
+            ['Flour', 'Sugar', 'Chocolate', 'Butter'])
 
     def test_link_xpath(self):
         browser = Browser(app.TestAppTemplate('link_expressions.html'))
@@ -89,12 +99,17 @@ class ExpressionsTestCase(unittest.TestCase):
             ['Home ...', 'Development ...', 'Advanced Lisp ...'])
         self.assertEqual(len(browser.inspect.breadcrumbs), 3)
 
+        # In the same fashion you can iter through it as a list.
+        self.assertEqual(
+            repr(list(browser.inspect.breadcrumbs)),
+            repr(['Home ...', 'Development ...', 'Advanced Lisp ...']))
+
         links = browser.inspect.navigation
         self.assertTrue('home' in links)
         self.assertTrue('Home' in links)
         self.assertFalse('download' in links)
 
-        self.assertEqual(repr(links['contact']), repr(u'Contact'))
+        self.assertEqual(repr(links['contact']), repr('Contact'))
         self.assertEqual(links['contact'].text, 'Contact')
         self.assertEqual(links['contact'].url, '/contact.html')
         self.assertEqual(links['contact'].click(), 200)
@@ -130,6 +145,11 @@ class ExpressionsTestCase(unittest.TestCase):
             browser.inspect.breadcrumbs.keys(),
             ['Home ...', 'Development ...', 'Advanced Lisp ...'])
         self.assertEqual(len(browser.inspect.breadcrumbs), 3)
+
+        # In the same fashion you can iter through it as a list.
+        self.assertEqual(
+            repr(list(browser.inspect.breadcrumbs)),
+            repr(['Home ...', 'Development ...', 'Advanced Lisp ...']))
 
     def test_normalized_spaces_xpath(self):
         browser = Browser(app.TestAppTemplate('normalized_spaces.html'))

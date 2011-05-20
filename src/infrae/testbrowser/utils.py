@@ -126,6 +126,19 @@ def none_filter(node):
     return True
 
 
+def compound_filter_factory(*functions):
+    """To be used with ExpressionResult.
+    """
+
+    def compound_filter(element):
+        for function in functions:
+            if not function(element):
+                return False
+        return True
+
+    return compound_filter
+
+
 class ExpressionResult(object):
     """Clever collection type used as result of a browser expression.
     """
@@ -146,13 +159,15 @@ class ExpressionResult(object):
             return default
 
     def __getitem__(self, key):
+        if isinstance(key, int):
+            return self.__values[key][2]
         key = key.lower()
-        matches = filter(lambda link: key in link[0], self.__values)
+        matches = filter(lambda item: key in item[0], self.__values)
         if not matches:
             raise KeyError(key)
         if len(matches) == 1:
             return matches[0][2]
-        exact_matches = filter(lambda link: key == link[0], matches)
+        exact_matches = filter(lambda item: key == item[0], matches)
         if len(exact_matches) == 1:
             return exact_matches[0][2]
         raise AssertionError(
