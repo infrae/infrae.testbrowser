@@ -11,7 +11,11 @@ class SeleniumError(AssertionError):
     def __str__(self):
         message = self.__doc__
         if self.args:
-            message += ' '.join(map(str, self.args))
+            info = self.args[0]
+            if 'class' in info:
+                message += 'Selenium error: ' + info['class'] + ':\n'
+            if 'message' in info:
+                message += info['message']
         return message
 
 
