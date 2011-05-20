@@ -7,12 +7,20 @@ import threading
 import wsgiref.simple_server
 
 
+class WSGIRequestHandler(wsgiref.simple_server.WSGIRequestHandler):
+
+    def log_message(self, *args):
+        # We don't log.
+        pass
+
+
 class WSGIRunner(threading.Thread):
 
     def __init__(self, app, options):
         super(WSGIRunner, self).__init__()
         self.server = wsgiref.simple_server.make_server(
-            options.server, int(options.port), app)
+            options.server, int(options.port), app,
+            handler_class=WSGIRequestHandler)
         # 0.5s polling for shutdown check.
         self.server.timeout = 0.5
         self.stopping = False
