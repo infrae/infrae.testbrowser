@@ -6,7 +6,10 @@
 import collections
 import operator
 
-from infrae.testbrowser.interfaces import IFormControl, IForm
+from infrae.testbrowser.interfaces import IForm
+from infrae.testbrowser.interfaces import IFormControl
+from infrae.testbrowser.interfaces import IClickableFormControl
+from infrae.testbrowser.interfaces import ISubmitableFormControl
 from infrae.testbrowser.expressions import ControlExpressions
 from infrae.testbrowser.utils import parse_charset, resolve_location
 
@@ -144,17 +147,22 @@ class Control(object):
 
 
 class ButtonControl(Control):
+    implements(IClickableFormControl)
 
     def click(self):
         return self._element.click()
 
-    submit = click
+
+class SubmitControl(ButtonControl):
+    implements(ISubmitableFormControl)
+
+    submit = ButtonControl.click
 
 
 FORM_ELEMENT_IMPLEMENTATION = {
-    'submit': ButtonControl,
+    'submit': SubmitControl,
     'button': ButtonControl,
-    'image': ButtonControl}
+    'image': SubmitControl}
 
 
 class Form(object):
@@ -219,7 +227,7 @@ class Form(object):
                 # No name, not a concern
                 continue
             assert button_name not in self.controls
-            button_type = button_node.get_attribute('type') or 'button'
+            button_type = button_node.get_attribute('type') or 'submit'
             factory = FORM_ELEMENT_IMPLEMENTATION.get(button_type, ButtonControl)
             self.controls[button_name] = factory(self, button_node)
 

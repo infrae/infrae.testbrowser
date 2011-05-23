@@ -5,7 +5,10 @@
 
 import unittest
 
-from infrae.testbrowser.interfaces import IForm, IFormControl
+from infrae.testbrowser.interfaces import IForm
+from infrae.testbrowser.interfaces import IFormControl
+from infrae.testbrowser.interfaces import IClickableFormControl
+from infrae.testbrowser.interfaces import ISubmitableFormControl
 from infrae.testbrowser.selenium.browser import Browser
 from infrae.testbrowser.tests import app
 
@@ -305,3 +308,25 @@ class FormTestCase(unittest.TestCase):
                 '<ul><li>adapter: Yes</li><li>send: Send</li></ul>'
                 in browser.contents)
 
+    def test_button(self):
+        with Browser(app.TestAppTemplate('button_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('dreamform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 4)
+
+            cancel_button = form.get_control('cancel')
+            self.assertTrue(verifyObject(ISubmitableFormControl, cancel_button))
+            cancel_button.click()
+
+            browser.open('/index.html')
+            form = browser.get_form('dreamform')
+            lost_button = form.get_control('lost')
+            self.assertTrue(verifyObject(IClickableFormControl, lost_button))
+            self.assertFalse(ISubmitableFormControl.providedBy(lost_button))
+            lost_button.click()     # This does nothing.
+
+            form = browser.get_form('dreamform')
+            save_button = form.get_control('save')
+            self.assertTrue(verifyObject(ISubmitableFormControl, save_button))
+            save_button.submit()

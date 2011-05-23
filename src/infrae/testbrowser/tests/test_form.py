@@ -403,14 +403,19 @@ class FormTestCase(unittest.TestCase):
         self.assertEqual(len(form.controls), 4)
 
         cancel_button = form.get_control('cancel')
-        self.assertTrue(verifyObject(IClickableFormControl, cancel_button))
-        self.assertFalse(ISubmitableFormControl.providedBy(cancel_button))
-        cancel_button.click()   # This does nothing.
+        self.assertTrue(verifyObject(ISubmitableFormControl, cancel_button))
+        cancel_button.click()
 
+        browser.open('/index.html')
+        form = browser.get_form('dreamform')
         lost_button = form.get_control('lost')
         self.assertTrue(verifyObject(IClickableFormControl, lost_button))
         self.assertFalse(ISubmitableFormControl.providedBy(lost_button))
         lost_button.click()     # This does nothing.
+
+        save_button = form.get_control('save')
+        self.assertTrue(verifyObject(ISubmitableFormControl, save_button))
+        save_button.submit()
 
     def test_lxml_regression(self):
         browser = Browser(app.TestAppTemplate('lxml_regression.html'))
