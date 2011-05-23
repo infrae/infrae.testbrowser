@@ -52,8 +52,7 @@ def SeleniumElementProxyFactory(browser):
 
                     def wrapper(*args, **kwargs):
                         value = attribute(*args, **kwargs)
-                        handler(browser, self.__session, self.__element, value)
-                        return value
+                        return handler(browser, self.__session, self.__element, value)
 
                     return wrapper
 

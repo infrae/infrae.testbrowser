@@ -34,7 +34,7 @@ class Clickable(object):
             self.__str = '<%s />' % element.tag
 
     def click(self):
-        self.element.click()
+        return self.element.click()
 
     def __str__(self):
         return str(self.__str)
@@ -82,42 +82,43 @@ EXPRESSION_TYPE = {
     }
 
 
+_marker = object()
+
 class Expressions(object):
 
     def __init__(self, runner):
         self.__runner = runner
         self.__expressions = defaultdict(lambda: tuple((None, None)))
-
-    def add(self, name, xpath=None, type='text', css=None):
-        assert type in EXPRESSION_TYPE, u'Unknown expression type %s' % type
-        finder = None
-        if xpath is not None:
-            finder = lambda d: d.get_elements(xpath=xpath)
-        elif css is not None:
-            finder = lambda d: d.get_elements(css=css)
-        assert finder is not None, u'You need to provide an XPath or CSS expression'
-        self.__expressions[name] = (finder, type)
-
-    def __getattr__(self, name):
-        finder, type = self.__expressions[name]
-        if finder is not None:
-            node_converter, node_filter, factory = EXPRESSION_TYPE[type]
-            return factory(filter(node_filter,
-                                  map(node_converter,
-                                      self.__runner(finder))))
-        raise AttributeError(name)
-
-
-class CompoundExpressions(object):
-
-    def __init__(self, expressions):
-        self.__expressions = expressions
         self.__compound = {}
 
-    def add(self, name, definition):
-        self.__compound[name] = definition
+    def add(self, name, xpath=None, type='text', css=None, compound=None):
+        if compound is None:
+            assert type in EXPRESSION_TYPE, u'Unknown expression type %s' % type
+            finder = None
+            if xpath is not None:
+                finder = lambda d: d.get_elements(xpath=xpath)
+            elif css is not None:
+                finder = lambda d: d.get_elements(css=css)
+            assert finder is not None, u'You need to provide an XPath or CSS expression'
+            self.__expressions[name] = (finder, type)
+        else:
+            self.__compound[name] = compound
 
     def __getattr__(self, name):
+
+        def get_expression(name):
+            finder, type = self.__expressions[name]
+            if finder is not None:
+                node_converter, node_filter, factory = EXPRESSION_TYPE[type]
+                return factory(filter(node_filter,
+                                      map(node_converter,
+                                          self.__runner(finder))))
+            return _marker
+
+        expression_values = get_expression(name)
+        if expression_values is not _marker:
+            return expression_values
+
         if name in self.__compound:
 
             class Object(object):
@@ -127,13 +128,17 @@ class CompoundExpressions(object):
 
             initial = True
             definitions = []
-            for key, value in self.__compound[name].items():
-                for position, item in enumerate(getattr(self.__expressions, value)):
+            for key, expression_name in self.__compound[name].items():
+                expression_values = get_expression(expression_name)
+                if expression_values is _marker:
+                    continue
+                for position, value in enumerate(expression_values):
                     if initial:
-                        definitions.append({key: item})
+                        definitions.append({key: value})
                     else:
-                        definitions[position][key] = item
+                        definitions[position][key] = value
                 initial = False
             return definitions
 
         raise AttributeError(name)
+

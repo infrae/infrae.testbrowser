@@ -304,3 +304,4 @@ class FormTestCase(unittest.TestCase):
             self.assertTrue(
                 '<ul><li>adapter: Yes</li><li>send: Send</li></ul>'
                 in browser.contents)
+

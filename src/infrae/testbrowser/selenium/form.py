@@ -146,7 +146,7 @@ class Control(object):
 class ButtonControl(Control):
 
     def click(self):
-        self._element.click()
+        return self._element.click()
 
     submit = click
 
