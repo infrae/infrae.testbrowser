@@ -106,3 +106,34 @@ class Expressions(object):
                                   map(node_converter,
                                       self.__runner(finder))))
         raise AttributeError(name)
+
+
+class CompoundExpressions(object):
+
+    def __init__(self, expressions):
+        self.__expressions = expressions
+        self.__compound = {}
+
+    def add(self, name, definition):
+        self.__compound[name] = definition
+
+    def __getattr__(self, name):
+        if name in self.__compound:
+
+            class Object(object):
+
+                def __init__(self, definition):
+                    self.__dict__.update(definition)
+
+            initial = True
+            definitions = []
+            for key, value in self.__compound[name].items():
+                for position, item in enumerate(getattr(self.__expressions, value)):
+                    if initial:
+                        definitions.append({key: item})
+                    else:
+                        definitions[position][key] = item
+                initial = False
+            return definitions
+
+        raise AttributeError(name)
