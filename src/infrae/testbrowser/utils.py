@@ -67,7 +67,7 @@ def resolve_location(url):
 def format_auth(user, password):
     return 'Basic ' + ':'.join((user, password)).encode('base64').strip()
 
-def encode_multipart_form_data(fields):
+def encode_multipart_form_data(fields, charset):
     """Encode form data as a mutlipart payload.
     """
     BOUNDARY = '------------uCtemt3iWu00F3QDhiwZ2nIQ$'
@@ -76,15 +76,20 @@ def encode_multipart_form_data(fields):
         fields = fields.iteritems()
     for key, value in fields:
         data.append('--' + BOUNDARY)
+        if isinstance(key, unicode):
+            key = key.encode(charset)
         if isinstance(value, File):
             data.append(
                 'Content-Disposition: form-data; name="%s"; filename="%s"' % (
-                    key, value.filename))
+                    key, unicode(value.filename).encode(charset)))
             data.append('Content-Type: %s' % value.content_type)
         else:
             data.append('Content-Disposition: form-data; name="%s"' % key)
         data.append('')
-        data.append(str(value))
+        if isinstance(data, unicode):
+            data.append(value.encode(charset))
+        else:
+            data.append(str(value))
     data.append('--'+ BOUNDARY + '--')
     data.append('')
     return 'multipart/form-data; boundary=%s' % BOUNDARY, '\r\n'.join(data)

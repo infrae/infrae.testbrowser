@@ -294,7 +294,7 @@ class Form(object):
             form.extend(control._submit_data(encoder))
         return self.__browser.open(
             self.action, method=self.method,
-            form=form, form_enctype=self.enctype)
+            form=form, form_charset=self.accept_charset[0], form_enctype=self.enctype)
 
     def __str__(self):
         return lxml.etree.tostring(self.html, pretty_print=True)

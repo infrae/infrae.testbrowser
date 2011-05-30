@@ -190,7 +190,7 @@ class Browser(object):
                 self.html.resolve_base_href()
 
     def open(self, url, method='GET', query=None,
-             form=None, form_enctype='application/x-www-form-urlencoded'):
+             form=None, form_charset='utf-8', form_enctype='application/x-www-form-urlencoded'):
         if self.__response:
             self.__history.append(
                 (self.__url, self.__method, self.__response))
@@ -214,7 +214,7 @@ class Browser(object):
                     data_type = 'application/x-www-form-urlencoded'
                     data = urllib.urlencode(form)
                 elif form_enctype == 'multipart/form-data':
-                    data_type, data = encode_multipart_form_data(form)
+                    data_type, data = encode_multipart_form_data(form, form_charset)
                 else:
                     raise AssertionError(
                         u"Unsupported form encoding %s" % form_enctype)
