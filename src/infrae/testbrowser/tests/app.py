@@ -91,13 +91,16 @@ class TestAppRedirect(object):
 
 class TestAppTemplate(object):
 
-    def __init__(self, filename):
+    def __init__(self, filename, default_headers=None):
         self.filename = os.path.join(
             os.path.dirname(__file__), 'data', filename)
+        self.default_headers = default_headers or {}
 
     def __call__(self, environ, start_response):
+        headers = {'Content-type': 'text/html'}
+        headers.update(self.default_headers)
         if environ['REQUEST_METHOD'] == 'POST':
-            start_response('200 Ok', [('Content-type', 'text/html'),])
+            start_response('200 Ok', headers.items())
             environ_length = environ.get('CONTENT_LENGTH')
             length = int(environ_length) if environ_length else 0
             data = urlparse.parse_qsl(environ['wsgi.input'].read(length))
@@ -105,7 +108,7 @@ class TestAppTemplate(object):
             return ['<html><ul>%s</ul></html>' % ''.join(map(
                         lambda v: '<li>%s: %s</li>' % (v[0], ''.join(v[1])), data))]
         with open(self.filename, 'r') as data:
-            start_response('200 Ok', [('Content-type', 'text/html'),])
+            start_response('200 Ok', headers.items())
             return [data.read()]
-        start_response('404 Not Found', [('Content-type', 'text/html'),])
+        start_response('404 Not Found', headers.items())
         return ['<html>File not found</html>']

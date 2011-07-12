@@ -73,6 +73,7 @@ class IAdvancedBrowser(IBrowser):
     status = Attribute(u"HTTP status")
     status_code = Attribute(u"HTTP status code as an integer")
     content_type = Attribute(u"Content type")
+    content_encoding = Attribute(u"Content encoding")
     headers = Attribute(u"Dictionary like access to response headers")
     html = Attribute(u"HTML payload parsed by LXML, or None")
     history = Attribute(u"Last previously viewed URLs")

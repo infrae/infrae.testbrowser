@@ -7,6 +7,7 @@ import collections
 import lxml.html
 import urllib
 import urlparse
+import re
 
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
@@ -34,6 +35,9 @@ class Options(CustomizableOptions):
 
     def __init__(self):
         super(Options, self).__init__(ICustomizableOptions)
+
+
+CHARSET_CAPTURE = re.compile(r'charset=(?P<charset>[^;]+)')
 
 
 class Browser(object):
@@ -100,12 +104,24 @@ class Browser(object):
     @property
     def contents(self):
         if self.__response is not None:
-            return self.__response.output.getvalue()
+            contents = self.__response.output.getvalue()
+            if self.content_encoding is not None:
+                return contents.decode(self.content_encoding)
+            else:
+                return contents
         return None
 
     @property
     def content_type(self):
         return self.headers.get('content-type')
+
+    @property
+    def content_encoding(self):
+        content_type = self.content_type
+        if content_type and 'charset=' in content_type:
+            charset_match = CHARSET_CAPTURE.search(content_type)
+            if charset_match:
+                return charset_match.group('charset').lower()
 
     def set_request_header(self, key, value):
         self.__request_headers[key] = value

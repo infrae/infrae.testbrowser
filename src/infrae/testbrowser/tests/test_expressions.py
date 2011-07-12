@@ -51,6 +51,22 @@ class ExpressionsTestCase(unittest.TestCase):
             list(browser.inspect.values),
             ['Flour', 'Sugar', 'Chocolate', 'Butter'])
 
+    def test_http_encoding(self):
+        browser = Browser(app.TestAppTemplate(
+                'utf8_index.html',
+                default_headers={'Content-type': 'text/html; charset=utf-8'}))
+        browser.open('/index.html')
+        browser.inspect.add('values', '//p')
+        self.assertEqual(browser.inspect.values, [u'âccèntùâtïon'])
+
+    def test_no_http_encoding(self):
+        browser = Browser(app.TestAppTemplate('utf8_index.html'))
+        browser.open('/index.html')
+        browser.inspect.add('values', '//p')
+        # we get a latin1 interpretation of utf-8
+        self.assertEqual(browser.inspect.values,
+                         [u'âccèntùâtïon'.encode('utf-8').decode('latin1')])
+
     def test_text_css(self):
         browser = Browser(app.TestAppTemplate('text_expressions.html'))
         browser.inspect.add('values', css='li')
