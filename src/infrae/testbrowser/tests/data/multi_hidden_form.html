@@ -1,0 +1,19 @@
+<html>
+  <body>
+    <h1>Test form with multiple hidden fields bearing the same name</h1>
+    <form method="post" action="/submit.html" name="form">
+      <input name="reason" type="text" />
+
+      <input type="hidden" name="secret" value="First" />
+      <input type="hidden" name="secret" value="Second" />
+      <input type="submit" name="save" value="Save" />
+
+      <!-- You can specify submit input more than one time -->
+      <input type="submit" name="save" value="Save" />
+
+      <!-- fields without name are ignored -->
+      <input type="text" value="nothing" />
+      <input type="hidden" value="i confirm nothing nothing" />
+    </form>
+  </body>
+</html>

@@ -143,6 +143,80 @@ class FormTestCase(unittest.TestCase):
                 '<ul><li>send: Send</li><li>true: Yes</li></ul>'
                 in browser.contents)
 
+    def test_multi_hidden_input(self):
+        """Support for multiple fields
+        """
+        with Browser(app.TestAppTemplate('multi_hidden_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('form')
+
+            self.assertEqual(len(form.controls), 3)
+            hidden_field = form.get_control('secret')
+            self.assertNotEqual(hidden_field, None)
+            self.assertTrue(verifyObject(IFormControl, hidden_field))
+            self.assertEqual(hidden_field.value, ['First', 'Second'])
+            self.assertEqual(hidden_field.type, 'hidden')
+            self.assertEqual(hidden_field.multiple, True)
+            self.assertEqual(hidden_field.checkable, False)
+            self.assertEqual(hidden_field.checked, False)
+            self.assertEqual(hidden_field.options, [])
+
+            # The field is for two values, you can only set two of them
+            self.assertRaises(
+                AssertionError,
+                setattr, hidden_field, 'value', 'One')
+            self.assertRaises(
+                AssertionError,
+                setattr, hidden_field, 'value', ['One', 'Two', 'Three'])
+
+            hidden_field.value = ['One', 'Two']
+            self.assertEqual(hidden_field.value, ['One', 'Two'])
+
+            # Submit the form
+            submit_field = form.get_control('save')
+            self.assertEqual(submit_field.submit(), 200)
+            self.assertEqual(browser.url, '/submit.html')
+            self.assertEqual(browser.method, 'POST')
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['save: Save', 'secret: One', 'secret: Two'])
+
+    def test_multi_mixed_input(self):
+        with Browser(app.TestAppTemplate('multi_mixed_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('form')
+
+            self.assertEqual(len(form.controls), 3)
+            hidden_field = form.get_control('secret')
+            self.assertNotEqual(hidden_field, None)
+            self.assertTrue(verifyObject(IFormControl, hidden_field))
+            self.assertEqual(hidden_field.value, ['First', 'Second', 'Third'])
+            self.assertEqual(hidden_field.type, 'mixed')
+            self.assertEqual(hidden_field.multiple, True)
+            self.assertEqual(hidden_field.checkable, False)
+            self.assertEqual(hidden_field.checked, False)
+            self.assertEqual(hidden_field.options, [])
+
+            # The field is for two values, you can only set two of them
+            self.assertRaises(
+                AssertionError,
+                setattr, hidden_field, 'value', 'One')
+            self.assertRaises(
+                AssertionError,
+                setattr, hidden_field, 'value', ['One', 'Two'])
+
+            hidden_field.value = ['Eerste', 'Tweede', 'Derde']
+            self.assertEqual(hidden_field.value, ['Eerste', 'Tweede', 'Derde'])
+
+            # Submit the form
+            submit_field = form.get_control('save')
+            self.assertEqual(submit_field.submit(), 200)
+            self.assertEqual(browser.url, '/submit.html')
+            self.assertEqual(browser.method, 'POST')
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['save: Save', 'secret: Eerste', 'secret: Tweede', 'secret: Derde'])
+
     def test_multi_checkbox_input(self):
         with Browser(app.TestAppTemplate('multicheckbox_form.html')) as browser:
             browser.open('/index.html')

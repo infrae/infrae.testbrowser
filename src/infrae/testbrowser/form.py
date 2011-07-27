@@ -77,9 +77,12 @@ class Control(object):
             if self.multiple:
                 if not isinstance(value, list) or isinstance(value, tuple):
                     value = [value]
-                for subvalue in value:
-                    if subvalue not in self.__options:
-                        raise AssertionError(u"Invalid choice %s" % subvalue)
+                if self.__type in ['radio', 'checkbox', 'select']:
+                    for subvalue in value:
+                        assert subvalue in self.__options, \
+                            u"Invalid choice %s" % subvalue
+                else:
+                    assert len(value) == len(self.__value), u"Not enough values"
             else:
                 if isinstance(value, int):
                     value = str(value)
@@ -121,13 +124,32 @@ class Control(object):
         return property(getter, setter)
 
     def _extend(self, html):
-        assert self.__type == html.get('type', 'submit'), \
-            u'%s: control extended with a different control type' % html.name
-        if self.__type == 'submit':
+        if html.tag in ['select', 'textarea']:
+            html_type = html.tag
+        else:
+            html_type = html.get('type', 'submit')
+        if self.__type == 'submit' and html_type == 'submit':
             # We authorize to have more than one submit with the same name
             return
-        assert self.__type in ['checkbox', 'radio'], \
-            u'%s: only checkbox and radio can be multiple inputs' % html.name
+        if self.__type not in ['checkbox', 'radio']:
+            # Support for multiple fields (hidden, other)
+            assert html_type not in ['file', 'submit', 'select', 'checkbox', 'radio'], \
+                u"%s: multiple input or mixing input %s and %s is not supported" % (
+                html.name, self.__type, html_type)
+            if self.__type != html_type:
+                self.__type = 'mixed'
+            if not self.__multiple:
+                self.__multiple = True
+                self.__value = [self.__value]
+            if html_type == 'textarea':
+                self.__value.append(html.text_content())
+            else:
+                self.__value.append(html.get('value', ''))
+            return
+        # Checkbox, radio
+        assert self.__type == html_type, \
+            u'%s: control extended with a different control type (%s with %s)' % (
+            html.name, self.__type, html_type)
         if not self.options:
             # Firt time the control is extended
             self.html = [self.html]
@@ -250,7 +272,8 @@ class Form(object):
             if not select_name:
                 # No name, not a concern
                 continue
-            assert select_name not in self.controls
+            assert select_name not in self.controls, \
+                u'No support for multiple select field of the name'
             self.controls[select_name] = Control(self, select_node)
             self.__control_names.append(select_name)
 
@@ -260,9 +283,11 @@ class Form(object):
             if not text_name:
                 # No name, not a concern
                 continue
-            assert text_name not in self.controls
-            self.controls[text_name] = Control(self, text_node)
-            self.__control_names.append(text_name)
+            if text_name in self.controls:
+                self.controls[text_name]._extend(text_node)
+            else:
+                self.controls[text_name] = Control(self, text_node)
+                self.__control_names.append(text_name)
 
         # Button tags
         for button_node in self.html.xpath('descendant::button'):

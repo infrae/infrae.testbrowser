@@ -277,4 +277,10 @@ In addition action controls (like submit buttons, button), have:
 For file control, you have to set as value the filename (i.e path to)
 of the file you want to upload.
 
+Code repository
+===============
+
+You can find the source code of this extensions in mercurial at
+https://hg.infrae.com/infrae.testbrowser.
+
 .. _zope.testbrowser: http://pypi.python.org/pypi/zope.testbrowser
