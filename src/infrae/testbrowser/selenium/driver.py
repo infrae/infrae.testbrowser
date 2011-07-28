@@ -252,9 +252,6 @@ class SeleniumElement(object):
     def send_keys(self, keys):
         self.__send('POST', '/value', {'value': list(keys)})
 
-    def select(self):
-        self.__send('POST', '/selected')
-
     def click(self):
         self.__send('POST', '/click')
 
@@ -263,9 +260,6 @@ class SeleniumElement(object):
 
     def submit(self):
         self.__send('POST', '/submit')
-
-    def toggle(self):
-        return self.__send('POST', '/toggle')['value']
 
     def get_attribute(self, name):
         return self.__send('GET', ''.join(('/attribute/', name)))['value']

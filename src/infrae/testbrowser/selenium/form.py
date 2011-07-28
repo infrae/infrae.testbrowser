@@ -82,13 +82,13 @@ class Control(object):
                             self.__options.values()))
                     wanted = set(map(lambda v: self.__options[v], value))
                     for option in selected.difference(wanted):
-                        option.toggle()
+                        option.click()
                     for option in wanted.difference(selected):
-                        option.select()
+                        option.click()
                 else:
                     assert value in self.__options.keys(), \
                         u'Invalid value %s selected' % value
-                    self.__options[value].select()
+                    self.__options[value].click()
             else:
                 if not isinstance(value, basestring):
                     raise AssertionError(
