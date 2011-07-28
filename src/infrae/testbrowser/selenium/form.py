@@ -19,15 +19,14 @@ from zope.interface import implements
 class Control(object):
     implements(IFormControl)
 
-    def __init__(self, form, element):
+    def __init__(self, form, element_type, element_name, element):
         self.form = form
         self._element = element
-        self.__name = element.get_attribute('name')
+        self.__name = element_name
         assert self.__name is not None
         self.__multiple = False
-        tag_name = element.tag
-        if tag_name == 'select':
-            self.__type = 'select'
+        self.__type = element_type
+        if element_type == 'select':
             self.__multiple = element.get_attribute('multiple') != 'false'
             self.__options = collections.OrderedDict()
             for option in element.get_elements(xpath='descendant::option'):
@@ -36,10 +35,6 @@ class Control(object):
                     value = option.text
                 self.__options[value] = option
         else:
-            if tag_name == 'textarea':
-                self.__type = 'textarea'
-            else:
-                self.__type = element.get_attribute('type') or 'submit'
             self.__options = collections.OrderedDict()
             if self.__type in ['checkbox', 'radio']:
                 self.__options[element.value] = element
@@ -142,12 +137,7 @@ class Control(object):
                     self._element.click()
         return property(getter, setter)
 
-    def _extend(self, element):
-        element_tag = element.tag
-        if element_tag in ['select', 'textarea']:
-            element_type = element_tag
-        else:
-            element_type = element.get_attribute('type') or 'submit'
+    def _extend(self, element_type, element):
         if self.__type == 'submit' and element_type == 'submit':
             # We authorize to have more than one submit with the same name
             return
@@ -155,8 +145,8 @@ class Control(object):
         if self.__type not in ['checkbox', 'radio']:
             # Support for multiple fields (hidden, other)
             assert element_type not in ['file', 'submit', 'select', 'checkbox', 'radio'], \
-                u"%s: multiple input or mixing input %s and %s is not supported" % (
-                element_tag, self.__type, element_type)
+                u"multiple input or mixing input %s and %s is not supported" % (
+                self.__type, element_type)
             if self.__type != element_type:
                 self.__type = 'mixed'
             if not self.__multiple:
@@ -215,49 +205,23 @@ class Form(object):
         get_elements = self.__element.get_elements
 
         # Input tags
-        for input_node in get_elements(xpath='descendant::input'):
+        for input_node in get_elements(
+            xpath='descendant::input|select|textarea|button'):
             input_name = input_node.get_attribute('name')
             if not input_name:
                 # Not usefull for our form
                 continue
-            if input_name in self.controls:
-                self.controls[input_name]._extend(input_node)
-            else:
+            input_tag = input_node.tag
+            if input_tag in ['input', 'button']:
                 input_type = input_node.get_attribute('type') or 'submit'
-                factory = FORM_ELEMENT_IMPLEMENTATION.get(input_type, Control)
-                self.controls[input_name] = factory(self, input_node)
-
-        # Select tags
-        for select_node in get_elements(xpath='descendant::select'):
-            select_name = select_node.get_attribute('name')
-            if not select_name:
-                # No name, not a concern
-                continue
-            assert select_name not in self.controls
-            self.controls[select_name] = Control(self, select_node)
-
-        # Textarea tags
-        for text_node in get_elements(xpath='descendant::textarea'):
-            text_name = text_node.get_attribute('name')
-            if not text_name:
-                # No name, not a concern
-                continue
-            if text_name in self.controls:
-                self.controls[text_name]._extend(text_node)
             else:
-                self.controls[text_name] = Control(self, text_node)
-
-        # Button tags
-        for button_node in get_elements(xpath='descendant::button'):
-            button_name = button_node.get_attribute('name')
-            if not button_name:
-                # No name, not a concern
-                continue
-            assert button_name not in self.controls
-            button_type = button_node.get_attribute('type') or 'submit'
-            factory = FORM_ELEMENT_IMPLEMENTATION.get(button_type, ButtonControl)
-            self.controls[button_name] = factory(self, button_node)
-
+                input_type = input_tag
+            if input_name in self.controls:
+                self.controls[input_name]._extend(input_type, input_node)
+            else:
+                factory = FORM_ELEMENT_IMPLEMENTATION.get(input_type, Control)
+                self.controls[input_name] = factory(
+                    self, input_type, input_name, input_node)
 
     def get_control(self, name):
         if name not in self.controls:
