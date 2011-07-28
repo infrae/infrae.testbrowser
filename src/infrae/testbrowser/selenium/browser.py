@@ -4,6 +4,7 @@
 # $Id$
 
 import urlparse
+import lxml.html
 
 from infrae.testbrowser.interfaces import IBrowser, _marker
 from infrae.testbrowser.interfaces import ISeleniumCustomizableOptions
@@ -98,6 +99,13 @@ class Browser(object):
     def contents(self):
         if self.__driver is not None:
             return self.__driver.contents
+        return None
+
+    @property
+    def html(self):
+        contents = self.contents
+        if contents is not None:
+            return lxml.html.document_fromstring(contents)
         return None
 
     def __verify_driver(self):

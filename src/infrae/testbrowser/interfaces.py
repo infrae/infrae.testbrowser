@@ -19,6 +19,7 @@ class IBrowser(Interface):
     url = Attribute(u"Currently viewed URL")
     location = Attribute(u"Currently viewed path")
     contents = Attribute(u"Payload")
+    html = Attribute(u"HTML payload parsed by LXML, or None")
 
     def __enter__():
         """Use a browser as a context manager. It will auto-close at
@@ -75,7 +76,6 @@ class IAdvancedBrowser(IBrowser):
     content_type = Attribute(u"Content type")
     content_encoding = Attribute(u"Content encoding")
     headers = Attribute(u"Dictionary like access to response headers")
-    html = Attribute(u"HTML payload parsed by LXML, or None")
     history = Attribute(u"Last previously viewed URLs")
 
     def set_request_header(key, value):

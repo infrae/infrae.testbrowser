@@ -40,6 +40,10 @@ class Control(object):
                         self.__value = value
                     else:
                         self.__value.append(value)
+            if not self.__value and not self.__multiple and self.__options:
+                # In case of non multiple select, the first value
+                # should be selected by default
+                self.__value = self.__options[0]
         else:
             if html.tag == 'textarea':
                 self.__type = 'textarea'
