@@ -257,54 +257,25 @@ class Form(object):
     def __populate_controls(self):
         __traceback_info__ = 'Error while parsing form: \n\n%s\n\n' % str(self)
         # Input tags
-        for input_node in self.html.xpath('descendant::input'):
+        # XXX: Test that the order is conserved form the source page.
+        for input_node in self.html.xpath(
+            'descendant::input|select|textarea|button'):
+
             input_name = input_node.get('name', None)
             if not input_name:
                 # No name, not a concern to this form
+                # XXX: Default to the good default
                 continue
             if input_name in self.controls:
                 self.controls[input_name]._extend(input_node)
             else:
-                input_type = input_node.get('type', 'submit')
+                if input_node.tag in ['input', 'button']:
+                    input_type = input_node.get('type', 'submit')
+                else:
+                    input_type = input_node.tag
                 factory = FORM_ELEMENT_IMPLEMENTATION.get(input_type, Control)
                 self.controls[input_name] = factory(self, input_node)
                 self.__control_names.append(input_name)
-
-        # Select tags
-        for select_node in self.html.xpath('descendant::select'):
-            select_name = select_node.get('name', None)
-            if not select_name:
-                # No name, not a concern
-                continue
-            assert select_name not in self.controls, \
-                u'No support for multiple select field of the name'
-            self.controls[select_name] = Control(self, select_node)
-            self.__control_names.append(select_name)
-
-        # Textarea tags
-        for text_node in self.html.xpath('descendant::textarea'):
-            text_name = text_node.get('name', None)
-            if not text_name:
-                # No name, not a concern
-                continue
-            if text_name in self.controls:
-                self.controls[text_name]._extend(text_node)
-            else:
-                self.controls[text_name] = Control(self, text_node)
-                self.__control_names.append(text_name)
-
-        # Button tags
-        for button_node in self.html.xpath('descendant::button'):
-            button_name = button_node.get('name', None)
-            if not button_name:
-                # No name, not a concern
-                continue
-            assert button_name not in self.controls, \
-                u'Duplicate input %s in form %s' % (button_name, self.name)
-            button_type = button_node.get('type', 'submit')
-            factory = FORM_ELEMENT_IMPLEMENTATION.get(button_type, ButtonControl)
-            self.controls[button_name] = factory(self, button_node)
-            self.__control_names.append(button_name)
 
     def get_control(self, name):
         if name not in self.controls:

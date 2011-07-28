@@ -6,8 +6,6 @@
 import unittest
 
 from infrae.testbrowser.interfaces import IForm, IFormControl
-from infrae.testbrowser.interfaces import IClickableFormControl
-from infrae.testbrowser.interfaces import ISubmitableFormControl
 from infrae.testbrowser.tests import app
 
 from zope.interface.verify import verifyObject
