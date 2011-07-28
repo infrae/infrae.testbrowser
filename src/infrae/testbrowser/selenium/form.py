@@ -129,7 +129,7 @@ class Control(object):
             if not self.__multiple:
                 status = self._element.is_selected
                 if status != value:
-                    self._element.toggle()
+                    self._element.click()
         return property(getter, setter)
 
     def _extend(self, element):

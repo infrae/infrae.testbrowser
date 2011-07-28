@@ -73,7 +73,7 @@ class ExpressionsTestCase(unittest.TestCase):
             self.assertEqual(
                 map(lambda l: l.url, browser.inspect.navigation.values()),
                 ['/home.html', '/contact.html',
-                 '/contact_abroad.html', 'python.html'])
+                 '/contact_abroad.html', '/development/python.html'])
 
             self.assertEqual(
                 browser.inspect.breadcrumbs.keys(),
@@ -120,7 +120,7 @@ class ExpressionsTestCase(unittest.TestCase):
             self.assertEqual(
                 map(lambda l: l.url, browser.inspect.navigation.values()),
                 ['/home.html', '/contact.html',
-                 '/contact_abroad.html', 'python.html'])
+                 '/contact_abroad.html', '/development/python.html'])
 
             self.assertEqual(
                 browser.inspect.breadcrumbs.keys(),

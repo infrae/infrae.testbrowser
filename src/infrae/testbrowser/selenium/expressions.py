@@ -3,11 +3,11 @@
 # See also LICENSE.txt
 # $Id$
 
-
 from collections import defaultdict
 
 from infrae.testbrowser.utils import node_to_node
 from infrae.testbrowser.utils import none_filter
+from infrae.testbrowser.utils import resolve_location
 from infrae.testbrowser.utils import compound_filter_factory
 from infrae.testbrowser.utils import ExpressionResult
 
@@ -50,8 +50,7 @@ class Link(Clickable):
 
     @property
     def url(self):
-        # XXX Need to make absolute
-        return self.element.get_attribute('href')
+        return resolve_location(self.element.get_attribute('href'))
 
 
 def ClickablesFactory(factory):
@@ -99,7 +98,8 @@ class Expressions(object):
                 finder = lambda d: d.get_elements(xpath=xpath)
             elif css is not None:
                 finder = lambda d: d.get_elements(css=css)
-            assert finder is not None, u'You need to provide an XPath or CSS expression'
+            assert finder is not None, \
+                u'You need to provide an XPath or CSS expression'
             self.__expressions[name] = (finder, type)
         else:
             self.__compound[name] = compound

@@ -52,7 +52,8 @@ def SeleniumElementProxyFactory(browser):
 
                     def wrapper(*args, **kwargs):
                         value = attribute(*args, **kwargs)
-                        return handler(browser, self.__session, self.__element, value)
+                        return handler(
+                            browser, self.__session, self.__element, value)
 
                     return wrapper
 
@@ -111,7 +112,8 @@ class Browser(object):
         if not url_parts[0]:
             url_parts[0] = 'http'
         if not url_parts[1]:
-            url_parts[1] = ':'.join((self.options.server, str(self.options.port)))
+            url_parts[1] = ':'.join(
+                (self.options.server, str(self.options.port)))
             if self.__user is not None:
                 user = self.__user
                 if self.__password is not None:
