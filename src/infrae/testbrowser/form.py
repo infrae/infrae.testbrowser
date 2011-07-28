@@ -258,6 +258,7 @@ class Form(object):
         __traceback_info__ = 'Error while parsing form: \n\n%s\n\n' % str(self)
         # Input tags
         # XXX: Test that the order is conserved form the source page.
+        # XXX: Use an ordered dict ?
         for input_node in self.html.xpath(
             'descendant::input|select|textarea|button'):
 
