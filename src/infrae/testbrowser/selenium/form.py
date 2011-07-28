@@ -67,6 +67,8 @@ class Control(object):
                     return values
                 assert len(values) < 2
                 return values and values[0] or ''
+            if self.__multiple:
+                return map(operator.attrgetter('value'), self._element)
             return self._element.value
         def setter(self, value):
             if self.__type in ['select', 'radio', 'checkbox']:
@@ -90,11 +92,19 @@ class Control(object):
                         u'Invalid value %s selected' % value
                     self.__options[value].click()
             else:
-                if not isinstance(value, basestring):
-                    raise AssertionError(
-                        u'Multiple values not accepted for this field')
-                self._element.clear()
-                self._element.send_keys(value)
+                if self.__multiple:
+                    if not isinstance(value, list) or isinstance(value, tuple):
+                        value = [value]
+                    assert len(value) == len(self._element), \
+                        u"Not enough values"
+                    for element, element_value in zip(self._element, value):
+                        element.clear()
+                        element.send_keys(value)
+                else:
+                    assert isinstance(value, basestring), \
+                        u'Multiple values not accepted for this field'
+                    self._element.clear()
+                    self._element.send_keys(value)
         return property(getter, setter)
 
     @apply
@@ -133,14 +143,29 @@ class Control(object):
         return property(getter, setter)
 
     def _extend(self, element):
-        element_type = element.get_attribute('type') or 'submit'
-        assert self.__type ==  element_type, \
-            u'Control extended with a different control type'
-        if self.__type == 'submit':
+        element_tag = element.tag
+        if element_tag in ['select', 'textarea']:
+            element_type = element_tag
+        else:
+            element_type = element.get_attribute('type') or 'submit'
+        if self.__type == 'submit' and element_type == 'submit':
             # We authorize to have more than one submit with the same name
             return
-        assert self.__type in ['checkbox', 'radio'], \
-            u'Only checkbox and radio can be multiple inputs'
+
+        if self.__type not in ['checkbox', 'radio']:
+            # Support for multiple fields (hidden, other)
+            assert element_type not in ['file', 'submit', 'select', 'checkbox', 'radio'], \
+                u"%s: multiple input or mixing input %s and %s is not supported" % (
+                element_tag, self.__type, element_type)
+            if self.__type != element_type:
+                self.__type = 'mixed'
+            if not self.__multiple:
+                self.__multiple = True
+                self._element = [self._element]
+            self._element.append(element)
+            return
+        assert self.__type ==  element_type, \
+            u'Control extended with a different control type'
         if self.__type == 'checkbox':
             self.__multiple = True
         self.__options[element.value] = element
@@ -190,17 +215,17 @@ class Form(object):
         get_elements = self.__element.get_elements
 
         # Input tags
-        for input_element in get_elements(xpath='descendant::input'):
-            input_name = input_element.get_attribute('name')
+        for input_node in get_elements(xpath='descendant::input'):
+            input_name = input_node.get_attribute('name')
             if not input_name:
                 # Not usefull for our form
                 continue
             if input_name in self.controls:
-                self.controls[input_name]._extend(input_element)
+                self.controls[input_name]._extend(input_node)
             else:
-                input_type = input_element.get_attribute('type') or 'submit'
+                input_type = input_node.get_attribute('type') or 'submit'
                 factory = FORM_ELEMENT_IMPLEMENTATION.get(input_type, Control)
-                self.controls[input_name] = factory(self, input_element)
+                self.controls[input_name] = factory(self, input_node)
 
         # Select tags
         for select_node in get_elements(xpath='descendant::select'):
@@ -217,8 +242,10 @@ class Form(object):
             if not text_name:
                 # No name, not a concern
                 continue
-            assert text_name not in self.controls
-            self.controls[text_name] = Control(self, text_node)
+            if text_name in self.controls:
+                self.controls[text_name]._extend(text_node)
+            else:
+                self.controls[text_name] = Control(self, text_node)
 
         # Button tags
         for button_node in get_elements(xpath='descendant::button'):
