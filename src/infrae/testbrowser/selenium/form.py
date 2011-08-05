@@ -206,7 +206,8 @@ class Form(object):
 
         # Input tags
         for input_node in get_elements(
-            xpath='descendant::input|select|textarea|button'):
+            xpath='descendant::input|descendant::select|descendant::textarea|' \
+                'descendant::button'):
             input_name = input_node.get_attribute('name')
             if not input_name:
                 # Not usefull for our form

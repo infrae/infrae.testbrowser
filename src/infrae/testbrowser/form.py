@@ -260,7 +260,8 @@ class Form(object):
         # XXX: Test that the order is conserved form the source page.
         # XXX: Use an ordered dict ?
         for input_node in self.html.xpath(
-            'descendant::input|select|textarea|button'):
+            'descendant::input|descendant::select|descendant::textarea|' \
+                'descendant::button'):
 
             input_name = input_node.get('name', None)
             if not input_name:
