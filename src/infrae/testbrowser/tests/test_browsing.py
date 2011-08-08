@@ -228,6 +228,26 @@ class BrowsingTestCase(unittest.TestCase):
             '<html><p>Call 2, path /root.html</p></html>')
         self.assertEqual(browser.history, [])
 
+    def test_query(self):
+        browser = Browser(app.test_app_query)
+        browser.open('http://localhost/root.html',
+                     query={'position': '42', 'name': 'index'})
+        self.assertEqual(browser.url, '/root.html?position=42&name=index')
+        self.assertEqual(browser.location, '/root.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['METHOD: GET', 'URL: /root.html', 'QUERY: position=42&name=index'])
+
+        browser.reload()
+        self.assertEqual(browser.url, '/root.html?position=42&name=index')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['METHOD: GET', 'URL: /root.html', 'QUERY: position=42&name=index'])
+
     def test_environ_default(self):
         # You can view and customize the default environ.
         browser = Browser(app.test_app_environ)
@@ -300,25 +320,29 @@ class BrowsingTestCase(unittest.TestCase):
              'wsgi.url_scheme: http',
              'wsgi.version: (1, 0)'])
 
-    def test_query(self):
-        browser = Browser(app.test_app_query)
+    def test_environ_query(self):
+        # You can view and customize the default environ.
+        browser = Browser(app.test_app_environ)
         browser.open('http://localhost/root.html',
-                     query={'position': '42', 'name': 'index'})
-        self.assertEqual(browser.url, '/root.html?position=42&name=index')
-        self.assertEqual(browser.location, '/root.html')
+                     query={'position': '42', 'name': 'index'},
+                     method='POST')
         self.assertEqual(browser.status, '200 Ok')
         self.assertNotEqual(browser.html, None)
         self.assertEqual(
             browser.html.xpath('//li/text()'),
-            ['METHOD: GET', 'URL: /root.html', 'QUERY: position=42&name=index'])
-
-        browser.reload()
-        self.assertEqual(browser.url, '/root.html?position=42&name=index')
-        self.assertEqual(browser.status, '200 Ok')
-        self.assertNotEqual(browser.html, None)
-        self.assertEqual(
-            browser.html.xpath('//li/text()'),
-            ['METHOD: GET', 'URL: /root.html', 'QUERY: position=42&name=index'])
+            ['PATH_INFO: /root.html',
+             'QUERY_STRING: position=42&name=index',
+             'REQUEST_METHOD: POST',
+             'SCRIPT_NAME: ',
+             'SERVER_NAME: localhost',
+             'SERVER_PORT: 80',
+             'SERVER_PROTOCOL: HTTP/1.0',
+             'wsgi.handleErrors: True',
+             'wsgi.multiprocess: False',
+             'wsgi.multithread: False',
+             'wsgi.run_once: False',
+             'wsgi.url_scheme: http',
+             'wsgi.version: (1, 0)'])
 
     def test_form_post(self):
         browser = Browser(app.test_app_data)
