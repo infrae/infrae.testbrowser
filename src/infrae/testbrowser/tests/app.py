@@ -56,6 +56,14 @@ def test_app_data(environ, start_response):
             '<li>content length:%s</li>' % environ.get('CONTENT_LENGTH', 'n/a'),
             '<li>%s</li></ul></html>' % environ['wsgi.input'].read()]
 
+def test_app_environ(environ, start_response):
+    start_response('200 Ok' , [('Content-type', 'text/html'),])
+    yield '<html><ul>'
+    for key in sorted(environ.keys()):
+        if key not in ('wsgi.input', 'wsgi.errors'):
+            # We ignore file containers
+            yield '<li>%s: %s</li>' % (str(key), str(environ[key]))
+    yield '</ul></html>'
 
 def test_app_empty(environ, start_response):
     start_response('200 Ok', [('Content-type', 'text/html'),])

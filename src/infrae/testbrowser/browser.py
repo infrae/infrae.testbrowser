@@ -32,6 +32,7 @@ class Options(CustomizableOptions):
     server = 'localhost'
     port = '80'
     protocol = 'HTTP/1.0'
+    default_wsgi_environ = {}
 
     def __init__(self):
         super(Options, self).__init__(ICustomizableOptions)

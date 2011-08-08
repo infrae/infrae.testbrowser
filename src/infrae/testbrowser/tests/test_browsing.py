@@ -228,6 +228,78 @@ class BrowsingTestCase(unittest.TestCase):
             '<html><p>Call 2, path /root.html</p></html>')
         self.assertEqual(browser.history, [])
 
+    def test_environ_default(self):
+        # You can view and customize the default environ.
+        browser = Browser(app.test_app_environ)
+        browser.open('http://localhost/root.html')
+        self.assertEqual(browser.location, '/root.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['PATH_INFO: /root.html',
+             'QUERY_STRING: ',
+             'REQUEST_METHOD: GET',
+             'SCRIPT_NAME: ',
+             'SERVER_NAME: localhost',
+             'SERVER_PORT: 80',
+             'SERVER_PROTOCOL: HTTP/1.0',
+             'wsgi.handleErrors: True',
+             'wsgi.multiprocess: False',
+             'wsgi.multithread: False',
+             'wsgi.run_once: False',
+             'wsgi.url_scheme: http',
+             'wsgi.version: (1, 0)'])
+
+    def test_environ_changed_hostname(self):
+        browser = Browser(app.test_app_environ)
+        browser.options.server = 'example.com'
+        browser.options.port = '8080'
+        browser.open('http://example.com:8080/root.html')
+        self.assertEqual(browser.location, '/root.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['PATH_INFO: /root.html',
+             'QUERY_STRING: ',
+             'REQUEST_METHOD: GET',
+             'SCRIPT_NAME: ',
+             'SERVER_NAME: example.com',
+             'SERVER_PORT: 8080',
+             'SERVER_PROTOCOL: HTTP/1.0',
+             'wsgi.handleErrors: True',
+             'wsgi.multiprocess: False',
+             'wsgi.multithread: False',
+             'wsgi.run_once: False',
+             'wsgi.url_scheme: http',
+             'wsgi.version: (1, 0)'])
+
+    def test_environ_custom(self):
+        # You can view and customize the default environ.
+        browser = Browser(app.test_app_environ)
+        browser.options.default_wsgi_environ = {'REMOTE_USER': 'hacker'}
+        browser.open('http://localhost/root.html')
+        self.assertEqual(browser.location, '/root.html')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['PATH_INFO: /root.html',
+             'QUERY_STRING: ',
+             'REMOTE_USER: hacker',
+             'REQUEST_METHOD: GET',
+             'SCRIPT_NAME: ',
+             'SERVER_NAME: localhost',
+             'SERVER_PORT: 80',
+             'SERVER_PROTOCOL: HTTP/1.0',
+             'wsgi.handleErrors: True',
+             'wsgi.multiprocess: False',
+             'wsgi.multithread: False',
+             'wsgi.run_once: False',
+             'wsgi.url_scheme: http',
+             'wsgi.version: (1, 0)'])
+
     def test_query(self):
         browser = Browser(app.test_app_query)
         browser.open('http://localhost/root.html',

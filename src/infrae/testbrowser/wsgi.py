@@ -44,7 +44,7 @@ class WSGIServer(object):
         self.options = options
 
     def get_default_environ(self):
-        environ = {}
+        environ = self.options.default_wsgi_environ.copy()
         environ['SERVER_PROTOCOL'] = self.options.protocol
         environ['SERVER_NAME'] = self.options.server
         environ['SERVER_PORT'] = self.options.port
