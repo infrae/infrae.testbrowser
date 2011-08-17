@@ -1,7 +1,17 @@
 from setuptools import setup, find_packages
 import os
+import sys
 
 version = '2.0dev'
+
+
+requires = [
+    'setuptools',
+    'lxml',
+    'zope.interface'
+]
+if sys.version_info < (2, 7):
+   requires.append('ordereddict')
 
 tests_require = [
     'zope.testing',
@@ -28,11 +38,7 @@ setup(name='infrae.testbrowser',
       include_package_data=True,
       zip_safe=False,
       test_suite='infrae.testbrowser',
-      install_requires=[
-        'setuptools',
-        'lxml',
-        'zope.interface',
-        ],
+      install_requires= requires,
       extras_require = {'test': tests_require},
       tests_require = tests_require,
       )
