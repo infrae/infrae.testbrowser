@@ -6,6 +6,7 @@
 import unittest
 
 from infrae.testbrowser.interfaces import IForm, IFormControl
+from infrae.testbrowser.interfaces import ISubmitableFormControl
 from infrae.testbrowser.tests import app
 
 from zope.interface.verify import verifyObject
@@ -99,6 +100,34 @@ class FormSupportTestCase(unittest.TestCase):
             self.assertEqual(
                 browser.html.xpath('//ul/li/text()'),
                 ['login: arthur', 'password: secret', 'save: Save'])
+
+    def test_default_input(self):
+        # Test that input and button defaults to the correct type
+        with self.Browser(app.TestAppTemplate('default_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('loginform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 3)
+
+            input_field = form.get_control('login')
+            self.assertNotEqual(input_field, None)
+            self.assertTrue(verifyObject(IFormControl, input_field))
+            self.assertEqual(input_field.value, 'arthur')
+            self.assertEqual(input_field.type, 'text')
+            self.assertEqual(input_field.multiple, False)
+            self.assertEqual(input_field.checkable, False)
+            self.assertEqual(input_field.checked, False)
+            self.assertEqual(input_field.options, [])
+
+            button_field = form.get_control('save')
+            self.assertNotEqual(button_field, None)
+            self.assertTrue(verifyObject(ISubmitableFormControl, button_field))
+            self.assertEqual(button_field.value, '')
+            self.assertEqual(button_field.type, 'submit')
+            self.assertEqual(button_field.multiple, False)
+            self.assertEqual(button_field.checkable, False)
+            self.assertEqual(button_field.checked, False)
+            self.assertEqual(button_field.options, [])
 
     def test_checkbox_input(self):
         with self.Browser(app.TestAppTemplate('checkbox_form.html')) as browser:

@@ -19,18 +19,18 @@ from zope.interface import implements
 class Control(object):
     implements(IFormControl)
 
-    def __init__(self, form, html):
+    def __init__(self, form, element_type, element):
         self.form = form
-        self.html = html
-        self.__name = html.get('name')
+        self.html = element
+        self.__name = element.get('name')
         assert self.__name is not None
         self.__multiple = False
-        if html.tag == 'select':
-            self.__type = 'select'
-            self.__multiple = html.get('multiple', False) is not False
+        self.__type = element_type
+        if element_type == 'select':
+            self.__multiple = element.get('multiple', False) is not False
             self.__value = [] if self.__multiple else ''
             self.__options = []
-            for option in html.xpath('descendant::option'):
+            for option in element.xpath('descendant::option'):
                 value = option.get('value', None)
                 if value is None:
                     value = option.text_content()
@@ -45,16 +45,14 @@ class Control(object):
                 # should be selected by default
                 self.__value = self.__options[0]
         else:
-            if html.tag == 'textarea':
-                self.__type = 'textarea'
-                self.__value = html.text_content()
+            if element_type == 'textarea':
+                self.__value = element.text_content()
             else:
-                self.__type = html.get('type', 'submit')
-                self.__value = html.get('value', '')
+                self.__value = element.get('value', '')
             self.__options = []
         self.__checked = False
         if self.checkable:
-            self.__checked = html.get('checked', False) is not False
+            self.__checked = element.get('checked', False) is not False
 
     @apply
     def name():
@@ -127,33 +125,29 @@ class Control(object):
             self.__checked = bool(value)
         return property(getter, setter)
 
-    def _extend(self, html):
-        if html.tag in ['select', 'textarea']:
-            html_type = html.tag
-        else:
-            html_type = html.get('type', 'submit')
-        if self.__type == 'submit' and html_type == 'submit':
+    def _extend(self, element_type, element):
+        if self.__type == 'submit' and element_type == 'submit':
             # We authorize to have more than one submit with the same name
             return
         if self.__type not in ['checkbox', 'radio']:
             # Support for multiple fields (hidden, other)
-            assert html_type not in ['file', 'submit', 'select', 'checkbox', 'radio'], \
+            assert element_type not in ['file', 'submit', 'select', 'checkbox', 'radio'], \
                 u"%s: multiple input or mixing input %s and %s is not supported" % (
-                html.name, self.__type, html_type)
-            if self.__type != html_type:
+                element.name, self.__type, element_type)
+            if self.__type != element_type:
                 self.__type = 'mixed'
             if not self.__multiple:
                 self.__multiple = True
                 self.__value = [self.__value]
-            if html_type == 'textarea':
-                self.__value.append(html.text_content())
+            if element_type == 'textarea':
+                self.__value.append(element.text_content())
             else:
-                self.__value.append(html.get('value', ''))
+                self.__value.append(element.get('value', ''))
             return
         # Checkbox, radio
-        assert self.__type == html_type, \
+        assert self.__type == element_type, \
             u'%s: control extended with a different control type (%s with %s)' % (
-            html.name, self.__type, html_type)
+            element.name, self.__type, element_type)
         if not self.options:
             # Firt time the control is extended
             self.html = [self.html]
@@ -169,8 +163,8 @@ class Control(object):
                     self.__value.append(value)
                 else:
                     self.__value = value
-        value = html.get('value', '')
-        if html.get('checked', False) is not False:
+        value = element.get('value', '')
+        if element.get('checked', False) is not False:
             if self.__multiple:
                 self.__value.append(value)
             else:
@@ -178,7 +172,7 @@ class Control(object):
                     u'Not multiple control with multiple value'
                 self.__value = value
         self.__options.append(value)
-        self.html.append(html)
+        self.html.append(element)
 
     def _submit_data(self, encoder):
         if self.checkable:
@@ -211,8 +205,8 @@ class ButtonControl(Control):
 class SubmitControl(Control):
     implements(ISubmitableFormControl)
 
-    def __init__(self, form, html):
-        super(SubmitControl, self).__init__(form, html)
+    def __init__(self, *args):
+        super(SubmitControl, self).__init__(*args)
         self.__selected = False
 
     def submit(self):
@@ -230,7 +224,13 @@ class SubmitControl(Control):
 FORM_ELEMENT_IMPLEMENTATION = {
     'button': ButtonControl,
     'submit': SubmitControl,
-    'image': SubmitControl}
+    'image': SubmitControl
+}
+
+FORM_ELEMENT_DEFAULT = {
+    'button': 'submit',
+    'input': 'text'
+}
 
 
 class Form(object):
@@ -266,17 +266,19 @@ class Form(object):
             input_name = input_node.get('name', None)
             if not input_name:
                 # No name, not a concern to this form
-                # XXX: Default to the good default
+                # XXX: Should default to the good default
                 continue
-            if input_name in self.controls:
-                self.controls[input_name]._extend(input_node)
+            if input_node.tag in ['input', 'button']:
+                input_type = input_node.get(
+                    'type', FORM_ELEMENT_DEFAULT[input_node.tag])
             else:
-                if input_node.tag in ['input', 'button']:
-                    input_type = input_node.get('type', 'submit')
-                else:
-                    input_type = input_node.tag
+                input_type = input_node.tag
+            if input_name in self.controls:
+                self.controls[input_name]._extend(input_type, input_node)
+            else:
                 factory = FORM_ELEMENT_IMPLEMENTATION.get(input_type, Control)
-                self.controls[input_name] = factory(self, input_node)
+                self.controls[input_name] = factory(
+                    self, input_type, input_node)
                 self.__control_names.append(input_name)
 
     def get_control(self, name):
