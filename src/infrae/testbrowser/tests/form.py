@@ -169,7 +169,41 @@ class FormSupportTestCase(unittest.TestCase):
             self.assertEqual(browser.location, '/submit.html')
             self.assertEqual(
                 browser.html.xpath('//ul/li/text()'),
-                ['send: Send', 'true: Yes'])
+                ['true: Yes', 'send: Send'])
+
+    def test_radio_input(self):
+        with self.Browser(app.TestAppTemplate('radio_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('feedbackform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 2)
+
+            radio_field = form.get_control('adapter')
+            self.assertNotEqual(radio_field, None)
+            self.assertTrue(verifyObject(IFormControl, radio_field))
+            self.assertEqual(radio_field.value, 'No')
+            self.assertEqual(radio_field.type, 'radio')
+            self.assertEqual(radio_field.multiple, False)
+            self.assertEqual(radio_field.checkable, False)
+            self.assertEqual(radio_field.checked, False)
+            self.assertEqual(radio_field.options, ['Yes', 'No'])
+
+            # You are limitied the options to set the value. No list are
+            # authorized.
+            self.assertRaises(
+                AssertionError, setattr, radio_field, 'value', 'Maybe')
+            self.assertRaises(
+                AssertionError, setattr, radio_field, 'value', ['Yes'])
+            radio_field.value = 'Yes'
+            self.assertEqual(radio_field.value, 'Yes')
+
+            submit_field = form.get_control('send')
+            submit_field.submit()
+
+            self.assertEqual(browser.location, '/submit.html')
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['adapter: Yes', 'send: Send'])
 
     def test_multi_checkbox_input(self):
         with self.Browser(app.TestAppTemplate('multicheckbox_form.html')) as browser:
@@ -203,8 +237,8 @@ class FormSupportTestCase(unittest.TestCase):
             self.assertEqual(browser.location, '/submit.html')
             self.assertEqual(
                 browser.html.xpath('//ul/li/text()'),
-                ['choose: Choose', 'language: C',
-                 'language: Python', 'language: Lisp'])
+                ['language: C', 'language: Python', 'language: Lisp',
+                 'choose: Choose'])
 
     def test_select(self):
         with self.Browser(app.TestAppTemplate('select_form.html')) as browser:
@@ -248,4 +282,20 @@ class FormSupportTestCase(unittest.TestCase):
             self.assertEqual(browser.location, '/submit.html')
             self.assertEqual(
                 browser.html.xpath('//ul/li/text()'),
-                ['choose: Choose', 'giberish: German', 'language: C'])
+                ['language: C', 'giberish: German', 'choose: Choose'])
+
+    def test_ordering(self):
+        with self.Browser(app.TestAppTemplate('ordering_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('ordering')
+            form.submit()
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['__start__: block1',
+                 'foo: foo',
+                 'radio1: first',
+                 '__end: block1',
+                 '__start__: block2',
+                 'foo: foo',
+                 'radio2: first',
+                 '__end: block2'])

@@ -19,13 +19,14 @@ from zope.interface import implements
 class Control(object):
     implements(IFormControl)
 
-    def __init__(self, form, element_type, element):
+    def __init__(self, form, element_type, element, register_submit):
         self.form = form
         self.html = element
         self.__name = element.get('name')
         assert self.__name is not None
         self.__multiple = False
         self.__type = element_type
+        submit = None
         if element_type == 'select':
             self.__multiple = element.get('multiple', False) is not False
             self.__value = [] if self.__multiple else ''
@@ -44,15 +45,45 @@ class Control(object):
                 # In case of non multiple select, the first value
                 # should be selected by default
                 self.__value = self.__options[0]
+
+            def submit(encoder):
+                if self.__multiple:
+                    return [(self.name, encoder(value)) for value in self.value]
+                return [(self.name, encoder(self.value))]
+
         else:
             if element_type == 'textarea':
                 self.__value = element.text_content()
             else:
                 self.__value = element.get('value', '')
             self.__options = []
+
+            if element_type == 'file':
+                submit = lambda encoder: [(self.name, File(self.value))]
+            else:
+
+                def submit(encoder):
+                    if self.__multiple:
+                        if len(self.__value):
+                            return [(self.name, encoder(self.__value[0]))]
+                        return []
+                    return [(self.name, encoder(self.__value))]
+
         self.__checked = False
-        if self.checkable:
+        if element_type in ['radio', 'checkbox']:
             self.__checked = element.get('checked', False) is not False
+
+            def submit(encoder):
+                if self.__multiple:
+                    return [(self.name, encoder(value)) for value in self.value]
+                if self.checkable and not self.__checked:
+                    return []
+                if not self.__value:
+                    return [(self.name, 'checked')]
+                return [(self.name, encoder(self.__value))]
+
+        if submit is not None:
+            register_submit(submit)
 
     @apply
     def name():
@@ -125,7 +156,7 @@ class Control(object):
             self.__checked = bool(value)
         return property(getter, setter)
 
-    def _extend(self, element_type, element):
+    def _extend(self, element_type, element, register_submit):
         if self.__type == 'submit' and element_type == 'submit':
             # We authorize to have more than one submit with the same name
             return
@@ -139,10 +170,18 @@ class Control(object):
             if not self.__multiple:
                 self.__multiple = True
                 self.__value = [self.__value]
+            value_index = len(self.__value)
             if element_type == 'textarea':
                 self.__value.append(element.text_content())
             else:
                 self.__value.append(element.get('value', ''))
+
+            def submit(encoder):
+                if len(self.__value) > value_index:
+                    return [(self.name, encoder(self.__value[value_index]))]
+                return []
+
+            register_submit(submit)
             return
         # Checkbox, radio
         assert self.__type == element_type, \
@@ -174,18 +213,6 @@ class Control(object):
         self.__options.append(value)
         self.html.append(element)
 
-    def _submit_data(self, encoder):
-        if self.checkable:
-            if not self.checked:
-                return []
-            if not self.value:
-                return [(self.name, 'checked')]
-        elif self.multiple:
-            return [(self.name, encoder(value)) for value in self.value]
-        if self.type in ['file']:
-            return [(self.name, File(self.value))]
-        return [(self.name, encoder(self.value))]
-
     def __str__(self):
         if isinstance(self.html, list):
             html = self.html
@@ -205,20 +232,23 @@ class ButtonControl(Control):
 class SubmitControl(Control):
     implements(ISubmitableFormControl)
 
-    def __init__(self, *args):
-        super(SubmitControl, self).__init__(*args)
+    def __init__(self, form, element_type, element, register_submit):
+        super(SubmitControl, self).__init__(
+            form, element_type, element, lambda r: None)
         self.__selected = False
+
+        def submit(encoder):
+            if self.__selected:
+                return [(self.name, encoder(self.value))]
+            return []
+
+        register_submit(submit)
 
     def submit(self):
         self.__selected = True
         return self.form.submit()
 
     click = submit
-
-    def _submit_data(self, encoder):
-        if not self.__selected:
-            return []
-        return [(self.name, encoder(self.value))]
 
 
 FORM_ELEMENT_IMPLEMENTATION = {
@@ -252,6 +282,7 @@ class Form(object):
         self.inspect.add('actions', ({'type': 'submit'}, 'value'))
         self.__browser = browser
         self.__control_names = []
+        self.__control_submits = []
         self.__populate_controls()
 
     def __populate_controls(self):
@@ -274,11 +305,12 @@ class Form(object):
             else:
                 input_type = input_node.tag
             if input_name in self.controls:
-                self.controls[input_name]._extend(input_type, input_node)
+                self.controls[input_name]._extend(
+                    input_type, input_node, self.__control_submits.append)
             else:
                 factory = FORM_ELEMENT_IMPLEMENTATION.get(input_type, Control)
                 self.controls[input_name] = factory(
-                    self, input_type, input_node)
+                    self, input_type, input_node, self.__control_submits.append)
                 self.__control_names.append(input_name)
 
     def get_control(self, name):
@@ -293,12 +325,14 @@ class Form(object):
             if value is None:
                 value = self.controls[name].value
             form.append((name, value))
-        for name in self.__control_names:
-            control = self.controls[name]
-            form.extend(control._submit_data(encoder))
+        for submitter in self.__control_submits:
+            form.extend(submitter(encoder))
         return self.__browser.open(
-            self.action, method=self.method,
-            form=form, form_charset=self.accept_charset[0], form_enctype=self.enctype)
+            self.action,
+            method=self.method,
+            form=form,
+            form_charset=self.accept_charset[0],
+            form_enctype=self.enctype)
 
     def __str__(self):
         return lxml.etree.tostring(self.html, pretty_print=True)

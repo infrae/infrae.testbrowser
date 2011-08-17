@@ -112,7 +112,6 @@ class TestAppTemplate(object):
             environ_length = environ.get('CONTENT_LENGTH')
             length = int(environ_length) if environ_length else 0
             data = urlparse.parse_qsl(environ['wsgi.input'].read(length))
-            data.sort(key=operator.itemgetter(0))
             return ['<html><ul>%s</ul></html>' % ''.join(map(
                         lambda v: '<li>%s: %s</li>' % (v[0], ''.join(v[1])), data))]
         with open(self.filename, 'r') as data:

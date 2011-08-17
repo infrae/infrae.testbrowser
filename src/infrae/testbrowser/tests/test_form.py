@@ -89,7 +89,7 @@ class FormTestCase(form.FormSupportTestCase):
             self.assertEqual(browser.method, 'POST')
             self.assertEqual(
                 browser.html.xpath('//ul/li/text()'),
-                ['save: Save', 'secret: One', 'secret: Two'])
+                ['secret: One', 'secret: Two', 'save: Save'])
 
     def test_multi_mixed_input(self):
         with Browser(app.TestAppTemplate('multi_mixed_form.html')) as browser:
@@ -125,7 +125,7 @@ class FormTestCase(form.FormSupportTestCase):
             self.assertEqual(browser.method, 'POST')
             self.assertEqual(
                 browser.html.xpath('//ul/li/text()'),
-                ['save: Save', 'secret: Eerste', 'secret: Tweede', 'secret: Derde'])
+                ['secret: Eerste', 'secret: Tweede', 'secret: Derde', 'save: Save'])
 
     def test_multi_select(self):
         with Browser(app.TestAppTemplate('multiselect_form.html')) as browser:
@@ -159,7 +159,7 @@ class FormTestCase(form.FormSupportTestCase):
             self.assertEqual(browser.method, 'POST')
             self.assertEqual(
                 browser.html.xpath('//ul/li/text()'),
-                ['choose: Choose', 'language: C', 'language: Python', 'language: Lisp'])
+                ['language: C', 'language: Python', 'language: Lisp', 'choose: Choose'])
 
     def test_textarea(self):
         browser = Browser(app.TestAppTemplate('textarea_form.html'))
@@ -189,40 +189,6 @@ class FormTestCase(form.FormSupportTestCase):
         self.assertEqual(
             browser.html.xpath('//ul/li/text()'),
             ['comment: A really blue sky', 'save: Save'])
-
-    def test_radio_input(self):
-        with Browser(app.TestAppTemplate('radio_form.html')) as browser:
-            browser.open('/index.html')
-            form = browser.get_form('feedbackform')
-            self.assertNotEqual(form, None)
-            self.assertEqual(len(form.controls), 2)
-
-            radio_field = form.get_control('adapter')
-            self.assertNotEqual(radio_field, None)
-            self.assertTrue(verifyObject(IFormControl, radio_field))
-            self.assertEqual(radio_field.value, 'No')
-            self.assertEqual(radio_field.type, 'radio')
-            self.assertEqual(radio_field.multiple, False)
-            self.assertEqual(radio_field.checkable, False)
-            self.assertEqual(radio_field.checked, False)
-            self.assertEqual(radio_field.options, ['Yes', 'No'])
-
-            # You are limitied the options to set the value. No list are
-            # authorized.
-            self.assertRaises(
-                AssertionError, setattr, radio_field, 'value', 'Maybe')
-            self.assertRaises(
-                AssertionError, setattr, radio_field, 'value', ['Yes'])
-            radio_field.value = 'Yes'
-            self.assertEqual(radio_field.value, 'Yes')
-
-            submit_field = form.get_control('send')
-            self.assertEqual(submit_field.submit(), 200)
-            self.assertEqual(browser.location, '/submit.html')
-            self.assertEqual(browser.method, 'POST')
-            self.assertEqual(
-                browser.html.xpath('//ul/li/text()'),
-                ['adapter: Yes', 'send: Send'])
 
     def test_file_input(self):
         browser = Browser(app.TestAppTemplate('file_form.html'))
@@ -298,6 +264,7 @@ class FormTestCase(form.FormSupportTestCase):
 
         strange_button = form.get_control('refresh')
         self.assertNotEqual(strange_button, None)
+
 
 def test_suite():
     suite = unittest.TestSuite()
