@@ -11,6 +11,14 @@ if not hasattr(collections, 'OrderedDict'):
     collections.OrderedDict = ordereddict.OrderedDict
 
 
+import unittest
+if not hasattr(unittest, 'SkipTest'):
+    class SkipTest(Exception):
+        pass
+
+    unittest.SkipTest = SkipTest
+
+
 # sysconfig.get_platform
 try:
     import sysconfig

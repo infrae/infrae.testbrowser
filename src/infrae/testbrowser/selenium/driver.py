@@ -6,6 +6,7 @@
 import json
 import atexit
 import urllib2
+from unittest import SkipTest
 
 from zope.testing.cleanup import addCleanUp
 
@@ -29,11 +30,12 @@ class Connection(object):
         data = json.dumps(parameters) if parameters else None
         request = utils.HTTPRequest(url=url, data=data, method=method)
         request.add_header('Accept', 'application/json')
-        #print method, url, data
         try:
             return self.validate(self.receive(self.open(request)))
-        except urllib2.URLError:
-            raise AssertionError(u"Could not connect to remote Selenium")
+        except urllib2.URLError as error:
+            if error.args[0].errno == 61:
+                raise SkipTest("Selenium unavailable")
+            raise errors.SelectionConnectionError({'message': str(error)})
 
     def receive(self, response):
         """Receive and decrypt Selenium response.
@@ -119,7 +121,10 @@ class Seleniums(object):
 
     def clear(self):
         for session in self.all():
-            session.quit()
+            try:
+                session.quit()
+            except SkipTest:
+                pass
         self.__sessions = {}
 
 

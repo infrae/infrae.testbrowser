@@ -19,8 +19,12 @@ class SeleniumError(AssertionError):
         return message
 
 
+class SelectionConnectionError(SeleniumError):
+    """Could not connect to remote Selenium
+    """
+
 class SeleniumTimeout(SeleniumError):
-    """Operation timeout.
+    """Operation timeout
     """
 
 class SeleniumFrameNotFound(SeleniumError):

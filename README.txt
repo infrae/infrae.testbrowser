@@ -6,6 +6,10 @@ infrae.testbrowser
 same ideas than `zope.testbrowser`_. It only has lxml and
 zope.interface as dependency.
 
+A Selenium version of the same browser is available in this package as
+well. It share the same API than the default one, and requires
+Selenium 2 to work.
+
 .. contents::
 
 API
