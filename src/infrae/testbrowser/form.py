@@ -162,7 +162,7 @@ class Control(object):
             return
         if self.__type not in ['checkbox', 'radio']:
             # Support for multiple fields (hidden, other)
-            assert element_type not in ['file', 'submit', 'select', 'checkbox', 'radio'], \
+            assert element_type not in ['file', 'submit', 'select'], \
                 u"%s: multiple input or mixing input %s and %s is not supported" % (
                 element.name, self.__type, element_type)
             if self.__type != element_type:

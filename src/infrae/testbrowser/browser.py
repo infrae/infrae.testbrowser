@@ -5,6 +5,7 @@
 
 import collections
 import lxml.html
+import lxml.etree
 import urllib
 import urlparse
 import re
@@ -59,6 +60,7 @@ class Browser(object):
         self.__history = collections.deque([], HISTORY_LENGTH)
         self.__cache = {}
         self.html = None
+        self.xml = None
 
     def __enter__(self):
         return self
@@ -94,7 +96,7 @@ class Browser(object):
         try:
             return int(status.split(' ', 1)[0])
         except ValueError:
-            raise AssertionError('Invalid HTTP status %s' % status)
+            raise AssertionError(u'Invalid HTTP status %s' % status)
 
     @property
     def headers(self):
@@ -197,14 +199,17 @@ class Browser(object):
             return self._query_application(
                 location, self.__method, None, None, None)
 
-        # Parse HTML
-        content_type = self.content_type
-        if content_type and (content_type.startswith('text/html') or
-                             content_type.startswith('text/xhtml')):
-            contents = self.contents
-            if contents:
-                self.html = lxml.html.document_fromstring(contents)
-                self.html.resolve_base_href()
+        # Parse HTML or XML
+        if response is not None:
+            content_type = response.headers.get('content-type')
+            data = response.output.getvalue()
+            if content_type and data:
+                if (content_type.startswith('text/html') or
+                    content_type.startswith('text/xhtml')):
+                    self.html = lxml.html.document_fromstring(self.contents)
+                    self.html.resolve_base_href()
+                elif content_type.startswith('text/xml'):
+                    self.xml = lxml.etree.fromstring(data)
 
     def open(self, url, method='GET', query=None,
              form=None, form_charset='utf-8', form_enctype='application/x-www-form-urlencoded'):
@@ -214,6 +219,7 @@ class Browser(object):
         data = None
         data_type = None
         self.html = None
+        self.xml = None
         self.__response = None
         self.__method = method
         if form is not None:
