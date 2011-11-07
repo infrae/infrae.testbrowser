@@ -77,6 +77,7 @@ class IAdvancedBrowser(IBrowser):
     content_encoding = Attribute(u"Content encoding")
     headers = Attribute(u"Dictionary like access to response headers")
     history = Attribute(u"Last previously viewed URLs")
+    xml = Attribute(u"XML payload parsed by LXML, or None")
 
     def set_request_header(key, value):
         """Set an HTTP header ``key`` to the given ``value`` for each

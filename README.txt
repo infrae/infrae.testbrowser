@@ -74,7 +74,11 @@ The following properties are helpful as well:
   and so.
 
 ``location``
-  Currently viewed path.
+  Currently viewed path. **It is recommanded** to use this in your
+  test instead of ``url``. In case of Selenium testing, the URL will
+  change depending of your local testing setup, meaning if your
+  Selenium is not on the same computer than your test suite, the URL
+  won't be localhost).
 
 ``history``
   Last previously viewed URLs.
@@ -151,11 +155,15 @@ expression with it, and query them after on HTML pages::
 
   `normalized-text`
     The result would be a list containing the text where whitespaces
-    have been normalized for each matched element.
+    have been normalized for each matched element. (not available on
+    Selenium, the text is normalized by default by the browser).
 
   `link`
     The result would be a list of links.
 
+  `clickable`
+    Available only on selenium, that is a list of elements, that you
+    can click on it (even if they are not links).
 
 Macros
 ------
@@ -280,6 +288,44 @@ In addition action controls (like submit buttons, button), have:
 
 For file control, you have to set as value the filename (i.e path to)
 of the file you want to upload.
+
+Selenium browser
+----------------
+
+``infrae.testbrowser.browser.selenium.Browser``
+   Test browser. You instantiate a new one by giving your WSGI
+   application to test as arguments to the constructor.
+
+   You have to use the browser as a context manager in order to start
+   and stop the server that Selenium will use to access the
+   application.
+
+   The following environement variable are available in order to
+   control the connection to the Selenium server:
+
+   - ``TESTBROWSER_BROWSER`` (default to firefox)
+
+   - ``TESTBROWSER_SELENIUM_PLATFORM`` (default to the local one)
+
+   - ``TESTBROWSER_SELENIUM_HOST`` (default to localhost)
+
+   - ``TESTBROWSER_SELENIUM_PORT`` (default to 4444)
+
+   - ``TESTBROWSER_SERVER`` (default to localhost)
+
+   - ``TESTBROWSER_PORT`` (default to 8000)
+
+   If you set your test to connect to a Selenium server that is not on
+   your server, please set the server and port so that the Selenium
+   knows where to connect to your application.
+
+   The API is the same than the default browser, except for:
+
+   - you can't access HTTP status or headers,
+
+   - you can't change hidden fields (you can only do what the user can
+     do).
+
 
 Code repository
 ===============

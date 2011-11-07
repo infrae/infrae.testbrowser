@@ -1,10 +1,37 @@
 Changelog
 =========
 
-1.2 (unreleased)
+2.0 (unreleased)
 ----------------
 
-* ...
+* Add an initial support for test with Selenium 2. The Selenium
+  browser takes a wsgi application as parameter and serves it using
+  Python default wsgi server, in a thread, during the testing. The API
+  of the Selenuim browser the one provided by the default one, in the
+  measure of the possible.
+
+* Fix various issues concerning encoding, to allow unicode strings at
+  many places.
+
+* Try to send back field values in the same order they are listed in
+  the HTML document. Some systems use this to work.
+
+* Fields are allowed, for most of then, to share the same name, even
+  if they are not of the same type. In this case, you set a list
+  instead of a value to the widget you fetched.
+
+* Allow more things to be customized, like the hostname, port,
+  protocol, the default wsgi environ. Some of those settings are
+  customizable from the command line (same system than for Selenium).
+
+* The browser is a now a context manager. You can register some
+  actions to be executed at the end of context manager, using
+  ``handlers``.
+
+* Add support for XML in the basic browser. An lxml parse tree is
+  available in the ``xml`` attribute of the browser.
+
+* This now support only Python 2.6 and 2.7.
 
 1.1 (2010-02-07)
 ----------------
