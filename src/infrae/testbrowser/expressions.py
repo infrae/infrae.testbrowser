@@ -42,20 +42,22 @@ class Link(object):
         return self.browser.open(self.url)
 
     def __str__(self):
+        if isinstance(self.text, unicode):
+            return self.text.encode('utf-8', 'replace')
         return str(self.text)
 
     def __unicode__(self):
         return unicode(self.text)
 
     def __repr__(self):
-        return repr(str(self.text))
+        return repr(str(self))
 
 
 class Links(ExpressionResult):
 
     def __init__(self, links, browser):
         super(Links, self).__init__(
-            map(lambda link: (str(link).lower(), str(link), link),
+            map(lambda link: (str(link).lower(), unicode(link), link),
                 map(lambda link: Link(link, browser), links)))
 
 

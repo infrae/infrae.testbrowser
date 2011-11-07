@@ -37,13 +37,15 @@ class Clickable(object):
         return self.element.click()
 
     def __str__(self):
+        if isinstance(self.__str, unicode):
+            return self.__str.encode('utf-8', 'replace')
         return str(self.__str)
 
     def __unicode__(self):
         return unicode(self.__str)
 
     def __repr__(self):
-        return repr(str(self.__str))
+        return repr(str(self))
 
 
 class Link(Clickable):
@@ -59,7 +61,7 @@ def ClickablesFactory(factory):
 
         def __init__(self, items):
             super(Clickables, self).__init__(
-                map(lambda item: (str(item).lower(), str(item), item),
+                map(lambda item: (str(item).lower(), unicode(item), item),
                     map(lambda item: factory(item), items)))
 
     return Clickables

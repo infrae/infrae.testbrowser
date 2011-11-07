@@ -63,13 +63,16 @@ class ExpressionsTestCase(unittest.TestCase):
                 ['Home', 'Contact', 'Contact Abroad', 'python'])
             self.assertEqual(
                 browser.inspect.breadcrumbs,
-                ['Home ...', 'Development ...', 'Advanced Lisp ...'])
+                [u'Home ...',
+                 u'Development ...',
+                 u'Advanced Lisp ...',
+                 u'Échange culturel ...'])
             self.assertNotEqual(
                 browser.inspect.navigation,
                 ['Home', 'python'])
             self.assertEqual(
                 repr(browser.inspect.navigation),
-                repr(['Home', 'Contact', 'Contact Abroad', 'python']))
+                repr([u'Home', u'Contact', u'Contact Abroad', u'python']))
             self.assertEqual(
                 map(lambda l: l.url, browser.inspect.navigation.values()),
                 ['/home.html', '/contact.html',
@@ -77,13 +80,19 @@ class ExpressionsTestCase(unittest.TestCase):
 
             self.assertEqual(
                 browser.inspect.breadcrumbs.keys(),
-                ['Home ...', 'Development ...', 'Advanced Lisp ...'])
-            self.assertEqual(len(browser.inspect.breadcrumbs), 3)
+                [u'Home ...',
+                 u'Development ...',
+                 u'Advanced Lisp ...',
+                 u'Échange culturel ...'])
+            self.assertEqual(len(browser.inspect.breadcrumbs), 4)
 
             # In the same fashion you can iter through it as a list.
             self.assertEqual(
                 repr(list(browser.inspect.breadcrumbs)),
-                repr(['Home ...', 'Development ...', 'Advanced Lisp ...']))
+                repr(['Home ...',
+                      'Development ...',
+                      'Advanced Lisp ...',
+                      'Échange culturel ...']))
 
             links = browser.inspect.navigation
             self.assertTrue('home' in links)
@@ -110,13 +119,16 @@ class ExpressionsTestCase(unittest.TestCase):
                 ['Home', 'Contact', 'Contact Abroad', 'python'])
             self.assertEqual(
                 browser.inspect.breadcrumbs,
-                ['Home ...', 'Development ...', 'Advanced Lisp ...'])
+                [u'Home ...',
+                 u'Development ...',
+                 u'Advanced Lisp ...',
+                 u'Échange culturel ...'])
             self.assertNotEqual(
                 browser.inspect.navigation,
                 ['Home', 'python'])
             self.assertEqual(
                 repr(browser.inspect.navigation),
-                repr(['Home', 'Contact', 'Contact Abroad', 'python']))
+                repr([u'Home', u'Contact', u'Contact Abroad', u'python']))
             self.assertEqual(
                 map(lambda l: l.url, browser.inspect.navigation.values()),
                 ['/home.html', '/contact.html',
@@ -124,10 +136,16 @@ class ExpressionsTestCase(unittest.TestCase):
 
             self.assertEqual(
                 browser.inspect.breadcrumbs.keys(),
-                ['Home ...', 'Development ...', 'Advanced Lisp ...'])
-            self.assertEqual(len(browser.inspect.breadcrumbs), 3)
+                [u'Home ...',
+                 u'Development ...',
+                 u'Advanced Lisp ...',
+                 u'Échange culturel ...'])
+            self.assertEqual(len(browser.inspect.breadcrumbs), 4)
 
             # In the same fashion you can iter through it as a list.
             self.assertEqual(
                 repr(list(browser.inspect.breadcrumbs)),
-                repr(['Home ...', 'Development ...', 'Advanced Lisp ...']))
+                repr(['Home ...',
+                      'Development ...',
+                      'Advanced Lisp ...',
+                      'Échange culturel ...']))
