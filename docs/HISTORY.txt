@@ -1,8 +1,8 @@
 Changelog
 =========
 
-2.0 (unreleased)
-----------------
+2.0b1 (2011/11/07)
+------------------
 
 * Add an initial support for test with Selenium 2. The Selenium
   browser takes a wsgi application as parameter and serves it using
