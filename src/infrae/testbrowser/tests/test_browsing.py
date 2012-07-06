@@ -3,79 +3,83 @@
 # See also LICENSE.txt
 # $Id$
 
-import unittest
 import operator
 import os.path
 
 from infrae.testbrowser.browser import Browser
 from infrae.testbrowser.interfaces import IAdvancedBrowser
-from infrae.testbrowser.tests import app
+from infrae.testbrowser.tests import app, browser
 from infrae.testbrowser.utils import File
 
 from zope.interface.verify import verifyObject
 
-class BrowsingTestCase(unittest.TestCase):
+
+class BrowsingTestCase(browser.BrowserTestCase):
+
+    def Browser(self, app):
+        return Browser(app)
 
     def test_no_open(self):
-        browser = Browser(app.test_app_write)
-        self.assertTrue(verifyObject(IAdvancedBrowser, browser))
-        self.assertEqual(browser.url, None)
-        self.assertEqual(browser.location, None)
-        self.assertEqual(browser.method, None)
-        self.assertEqual(browser.status, None)
-        self.assertEqual(browser.status_code, None)
-        self.assertEqual(browser.contents, None)
-        self.assertEqual(browser.headers, {})
-        self.assertEqual(browser.content_type, None)
-        self.assertEqual(browser.headers.get('Content-Type'), None)
-        self.assertRaises(
-            KeyError, operator.itemgetter('Nothing'), browser.headers)
-        self.assertEqual(browser.html, None)
-        self.assertRaises(
-            AssertionError, browser.reload)
+        with Browser(app.test_app_write) as browser:
+            self.assertTrue(verifyObject(IAdvancedBrowser, browser))
+            self.assertEqual(browser.url, None)
+            self.assertEqual(browser.location, None)
+            self.assertEqual(browser.method, None)
+            self.assertEqual(browser.status, None)
+            self.assertEqual(browser.status_code, None)
+            self.assertEqual(browser.contents, None)
+            self.assertEqual(browser.headers, {})
+            self.assertEqual(browser.content_type, None)
+            self.assertEqual(browser.headers.get('Content-Type'), None)
+            self.assertRaises(
+                KeyError, operator.itemgetter('Nothing'), browser.headers)
+            self.assertEqual(browser.html, None)
+            self.assertRaises(
+                AssertionError, browser.reload)
 
     def test_write(self):
-        browser = Browser(app.test_app_write)
-        browser.open('http://localhost/index.html')
-        self.assertEqual(browser.url, '/index.html')
-        self.assertEqual(browser.method, 'GET')
-        self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.status_code, 200)
-        self.assertEqual(
-            browser.contents,
-            '<html><ul>'
-            '<li>SERVER: http://localhost:80/</li>'
-            '<li>METHOD: GET</li>'
-            '<li>URL: /index.html</li>'
-            '</ul></html>')
-        self.assertEqual(browser.headers, {'content-type': 'text/html'})
-        self.assertEqual(browser.content_type, 'text/html')
-        self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
-        self.assertEqual(
-            browser.html.xpath('//li/text()'),
-            ['SERVER: http://localhost:80/',
-             'METHOD: GET',
-             'URL: /index.html'])
-        self.assertNotEqual(browser.html, None)
+        with Browser(app.test_app_write) as browser:
+            browser.open('http://localhost/index.html')
+            self.assertEqual(browser.url, '/index.html')
+            self.assertEqual(browser.location, '/index.html')
+            self.assertEqual(browser.method, 'GET')
+            self.assertEqual(browser.status, '200 Ok')
+            self.assertEqual(browser.status_code, 200)
+            self.assertEqual(
+                browser.contents,
+                '<html><ul>'
+                '<li>SERVER: http://localhost:80/</li>'
+                '<li>METHOD: GET</li>'
+                '<li>URL: /index.html</li>'
+                '</ul></html>')
+            self.assertEqual(browser.headers, {'content-type': 'text/html'})
+            self.assertEqual(browser.content_type, 'text/html')
+            self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
+            self.assertEqual(
+                browser.html.xpath('//li/text()'),
+                ['SERVER: http://localhost:80/',
+                 'METHOD: GET',
+                 'URL: /index.html'])
+            self.assertNotEqual(browser.html, None)
 
     def test_write_relative_open_with_method(self):
-        browser = Browser(app.test_app_write)
-        browser.open('/index.html', method='PUT')
-        self.assertEqual(browser.url, '/index.html')
-        self.assertEqual(browser.method, 'PUT')
-        self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.status_code, 200)
-        self.assertEqual(
-            browser.contents,
-            '<html><ul>'
-            '<li>SERVER: http://localhost:80/</li>'
-            '<li>METHOD: PUT</li>'
-            '<li>URL: /index.html</li>'
-            '</ul></html>')
-        self.assertEqual(browser.headers, {'content-type': 'text/html'})
-        self.assertEqual(browser.content_type, 'text/html')
-        self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
-        self.assertNotEqual(browser.html, None)
+        with Browser(app.test_app_write) as browser:
+            browser.open('/index.html', method='PUT')
+            self.assertEqual(browser.url, '/index.html')
+            self.assertEqual(browser.method, 'PUT')
+            self.assertEqual(browser.status, '200 Ok')
+            self.assertEqual(browser.status_code, 200)
+            self.assertEqual(
+                browser.contents,
+                '<html><ul>'
+                '<li>SERVER: http://localhost:80/</li>'
+                '<li>METHOD: PUT</li>'
+                '<li>URL: /index.html</li>'
+                '</ul></html>')
+            self.assertEqual(browser.headers, {'content-type': 'text/html'})
+            self.assertEqual(browser.content_type, 'text/html')
+            self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
+            self.assertNotEqual(browser.html, None)
 
     def test_iterator(self):
         browser = Browser(app.test_app_iter)

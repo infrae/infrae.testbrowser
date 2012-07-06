@@ -3,16 +3,18 @@
 # See also LICENSE.txt
 # $Id$
 
-import unittest
 
 from infrae.testbrowser.selenium.browser import Browser
 from infrae.testbrowser.interfaces import IBrowser
-from infrae.testbrowser.tests import app
+from infrae.testbrowser.tests import app, browser
 
 from zope.interface.verify import verifyObject
 
 
-class BrowsingTestCase(unittest.TestCase):
+class BrowsingTestCase(browser.BrowserTestCase):
+
+    def Browser(self, app):
+        return Browser(app)
 
     def test_no_open(self):
         with Browser(app.test_app_write) as browser:

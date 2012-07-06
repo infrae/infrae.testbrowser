@@ -27,7 +27,7 @@ class Control(object):
         self.__multiple = False
         self.__type = element_type
         if element_type == 'select':
-            self.__multiple = element.get_attribute('multiple') != 'false'
+            self.__multiple = element.get_attribute('multiple') not in (None, 'false')
             self.__options = collections.OrderedDict()
             for option in element.get_elements(xpath='descendant::option'):
                 value = option.get_attribute('value')
@@ -94,7 +94,7 @@ class Control(object):
                         u"Not enough values"
                     for element, element_value in zip(self._element, value):
                         element.clear()
-                        element.send_keys(value)
+                        element.send_keys(element_value)
                 else:
                     assert isinstance(value, basestring), \
                         u'Multiple values not accepted for this field'

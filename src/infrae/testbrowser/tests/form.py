@@ -7,6 +7,7 @@ import unittest
 
 from infrae.testbrowser.interfaces import IForm, IFormControl
 from infrae.testbrowser.interfaces import ISubmitableFormControl
+from infrae.testbrowser.interfaces import IClickableFormControl
 from infrae.testbrowser.tests import app
 
 from zope.interface.verify import verifyObject
@@ -284,6 +285,104 @@ class FormSupportTestCase(unittest.TestCase):
                 browser.html.xpath('//ul/li/text()'),
                 ['language: C', 'giberish: German', 'choose: Choose'])
 
+    def test_multi_select(self):
+        with self.Browser(app.TestAppTemplate('multiselect_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('langform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 2)
+
+            select_field = form.get_control('language')
+            self.assertNotEqual(select_field, None)
+            self.assertTrue(verifyObject(IFormControl, select_field))
+            self.assertEqual(select_field.value, ['C', 'Python'])
+            self.assertEqual(select_field.type, 'select')
+            self.assertEqual(select_field.multiple, True)
+            self.assertEqual(select_field.checkable, False)
+            self.assertEqual(select_field.checked, False)
+            self.assertEqual(
+                select_field.options,
+                ['C', 'Java', 'Erlang', 'Python', 'Lisp'])
+
+            self.assertRaises(
+                AssertionError, setattr, select_field, 'value', 'C#')
+            select_field.value = 'Erlang'
+            self.assertEqual(select_field.value, ['Erlang'])
+            select_field.value = ['C', 'Python', 'Lisp']
+            self.assertEqual(select_field.value, ['C', 'Python', 'Lisp'])
+
+            submit_field = form.get_control('choose')
+            submit_field.submit()
+
+            self.assertEqual(browser.location, '/submit.html')
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['language: C', 'language: Python', 'language: Lisp', 'choose: Choose'])
+
+    def test_multi_mixed_input(self):
+        with self.Browser(app.TestAppTemplate('multi_mixed_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('form')
+
+            self.assertEqual(len(form.controls), 3)
+            multi_field = form.get_control('secret')
+            self.assertNotEqual(multi_field, None)
+            self.assertTrue(verifyObject(IFormControl, multi_field))
+            self.assertEqual(multi_field.value, ['First', 'Second', 'Third'])
+            self.assertEqual(multi_field.type, 'mixed')
+            self.assertEqual(multi_field.multiple, True)
+            self.assertEqual(multi_field.checkable, False)
+            self.assertEqual(multi_field.checked, False)
+            self.assertEqual(multi_field.options, [])
+
+            # The field is for two values, you can only set two of them
+            self.assertRaises(
+                AssertionError,
+                setattr, multi_field, 'value', 'One')
+            self.assertRaises(
+                AssertionError,
+                setattr, multi_field, 'value', ['One', 'Two'])
+
+            multi_field.value = ['Eerste', 'Tweede', 'Derde']
+            self.assertEqual(multi_field.value, ['Eerste', 'Tweede', 'Derde'])
+
+            # Submit the form
+            submit_field = form.get_control('save')
+            submit_field.submit()
+
+            self.assertEqual(browser.location, '/submit.html')
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['secret: Eerste', 'secret: Tweede', 'secret: Derde', 'save: Save', ])
+
+    def test_textarea(self):
+        with self.Browser(app.TestAppTemplate('textarea_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('commentform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 2)
+
+            textarea_field = form.get_control('comment')
+            self.assertNotEqual(textarea_field, None)
+            self.assertTrue(verifyObject(IFormControl, textarea_field))
+            self.assertEqual(textarea_field.value, 'The sky is blue')
+            self.assertEqual(textarea_field.type, 'textarea')
+            self.assertEqual(textarea_field.multiple, False)
+            self.assertEqual(textarea_field.checkable, False)
+            self.assertEqual(textarea_field.checked, False)
+            self.assertEqual(textarea_field.options, [])
+
+            self.assertRaises(
+                AssertionError, setattr, textarea_field, 'value', ['A list'])
+
+            textarea_field.value = 'A really blue sky'
+            submit_field = form.get_control('save')
+            submit_field.submit()
+
+            self.assertEqual(
+                browser.html.xpath('//ul/li/text()'),
+                ['comment: A really blue sky', 'save: Save'])
+
     def test_ordering(self):
         with self.Browser(app.TestAppTemplate('ordering_form.html')) as browser:
             browser.open('/index.html')
@@ -299,3 +398,27 @@ class FormSupportTestCase(unittest.TestCase):
                  'foo: foo',
                  'radio2: first',
                  '__end: block2'])
+
+
+    def test_button(self):
+        with self.Browser(app.TestAppTemplate('button_form.html')) as browser:
+            browser.open('/index.html')
+            form = browser.get_form('dreamform')
+            self.assertNotEqual(form, None)
+            self.assertEqual(len(form.controls), 4)
+
+            cancel_button = form.get_control('cancel')
+            self.assertTrue(verifyObject(ISubmitableFormControl, cancel_button))
+            cancel_button.click()
+
+            browser.open('/index.html')
+            form = browser.get_form('dreamform')
+            lost_button = form.get_control('lost')
+            self.assertTrue(verifyObject(IClickableFormControl, lost_button))
+            self.assertFalse(ISubmitableFormControl.providedBy(lost_button))
+            lost_button.click()     # This does nothing.
+
+            form = browser.get_form('dreamform')
+            save_button = form.get_control('save')
+            self.assertTrue(verifyObject(ISubmitableFormControl, save_button))
+            save_button.submit()
