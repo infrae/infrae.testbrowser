@@ -315,9 +315,11 @@ Selenium browser
 
    - ``TESTBROWSER_PORT`` (default to 8000)
 
-   If you set your test to connect to a Selenium server that is not on
-   your server, please set the server and port so that the Selenium
-   knows where to connect to your application.
+   If you set your testsuite to connect to a Selenium server that is
+   not on your computer where you run your testsuite, please set the
+   server and port options so that the Selenium knows how to connect
+   to your application (it should be the network name of your
+   computer).
 
    The API is the same than the default browser, except for:
 
@@ -325,6 +327,42 @@ Selenium browser
 
    - you can't change hidden fields (you can only do what the user can
      do).
+
+Selenium Browser options
+------------------------
+
+The following options are attributes of the options object, example::
+
+    >>> browser.options.enable_javascript = False
+
+They are on par with the possible configuration environment variables:
+
+``enable_javascript``
+   Enable or disable Javascript in Selenium.
+
+``browser``
+   String used to specify which browser you expect to use,
+   i.e. 'firefox' or 'chrome' for instance.
+
+``selenium_host``
+  Network name of the computer where the Selenium server run.
+
+``selenium_port``
+  Port number where the Selenium server run.
+
+``selenium_platform``
+  Operating system where the Selenium should run the wanted browsers
+  (for instance set it to 'win' if you wish Selenium to pick a browser
+  on Windows).
+
+``server``
+   Network name of the computer where the testsuite will be
+   running. This is the name that Selenium will use to access the
+   tested application.
+
+``port``
+   Port on which the test application will be bound so Selenium can
+   access it.
 
 
 Code repository
