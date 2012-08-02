@@ -33,7 +33,8 @@ class Connection(object):
         try:
             return self.validate(self.receive(self.open(request)))
         except urllib2.URLError as error:
-            if error.args[0].errno == 61:
+            if error.args[0].errno in [61, 111]:
+                # Those are errno for connection refured.
                 raise SkipTest("Selenium unavailable")
             raise errors.SelectionConnectionError({'message': str(error)})
 
