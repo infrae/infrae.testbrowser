@@ -16,6 +16,7 @@ from infrae.testbrowser.interfaces import IAdvancedBrowser, _marker
 from infrae.testbrowser.interfaces import ICustomizableOptions
 from infrae.testbrowser.utils import Macros, CustomizableOptions, Handlers
 from infrae.testbrowser.utils import encode_multipart_form_data, format_auth
+from infrae.testbrowser.utils import Cookies
 from infrae.testbrowser.wsgi import WSGIServer
 
 from zope.interface import implements
@@ -56,6 +57,7 @@ class Browser(object):
         self.__response = None
         self.__data = None
         self.__data_type = None
+        self.cookies = Cookies()
         self.__request_headers = dict()
         self.__history = collections.deque([], HISTORY_LENGTH)
         self.__cache = {}
@@ -174,6 +176,7 @@ class Browser(object):
              url_info.fragment))
         self.__url = uri
         headers = self.__request_headers.copy()
+        headers.update(self.cookies.get_request_headers())
         if url_info.username and url_info.password:
             headers['Authorization'] = format_auth(
                 url_info.username, url_info.password)
@@ -187,7 +190,7 @@ class Browser(object):
         if self.options.cookie_support:
             cookie = self.headers.get('Set-Cookie')
             if cookie:
-                self.set_request_header('Cookie', cookie.split(';', 1)[0])
+                self.cookies.set(cookie)
 
         # Redirect
         if (self.status_code in (301, 302, 303) and
