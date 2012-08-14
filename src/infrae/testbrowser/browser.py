@@ -151,13 +151,16 @@ class Browser(object):
         else:
             if password is _marker:
                 password = user
-            self.set_request_header('Authorization', format_auth(user, password))
+            self.set_request_header(
+                'Authorization',
+                format_auth(user, password))
 
     def logout(self):
         if 'login' in self.handlers:
             self.handlers.login.logout(self)
         else:
-            self.del_request_header('Authorization')
+            self.del_request_header(
+                'Authorization')
 
     @property
     def history(self):
@@ -165,21 +168,32 @@ class Browser(object):
 
     def _query_application(self, url, method, query, data, data_type):
         self.__cache = {}
-        url_info = urlparse.urlparse(url)
+        info = urlparse.urlparse(url)
+        if info.netloc:
+            # If a netloc is present, update the options for server and port.
+            if ':' in info.netloc:
+                self.options.server, self.options.port = \
+                    info.netloc.split(':', 1)
+            else:
+                self.options.server = info.netloc
+                if info.scheme == 'https':
+                    self.options.port = '443'
+                else:
+                    self.options.port = '80'
         query_string = urllib.urlencode(query) if query else ''
         uri = urlparse.urlunparse(
             (None,
              None,
-             url_info.path,
-             url_info.params,
-             query_string or url_info.query,
-             url_info.fragment))
+             info.path,
+             info.params,
+             query_string or info.query,
+             info.fragment))
         self.__url = uri
         headers = self.__request_headers.copy()
         headers.update(self.cookies.get_request_headers())
-        if url_info.username and url_info.password:
+        if info.username and info.password:
             headers['Authorization'] = format_auth(
-                url_info.username, url_info.password)
+                info.username, info.password)
         self._process_response(
             self.__server(method, uri, headers.items(), data, data_type))
 
@@ -252,6 +266,7 @@ class Browser(object):
     def reload(self):
         assert self.__url is not None, 'No URL to reload'
         self.html = None
+        self.xml = None
         self.__response = None
         self._query_application(
             self.__url, self.__method, None, self.__data, self.__data_type)

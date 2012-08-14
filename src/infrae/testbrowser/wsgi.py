@@ -44,18 +44,21 @@ class WSGIServer(object):
         self.options = options
 
     def get_default_environ(self):
+        scheme = 'https' if self.options.port == '443' else 'http'
         environ = self.options.default_wsgi_environ.copy()
         environ['SERVER_PROTOCOL'] = self.options.protocol
         environ['SERVER_NAME'] = self.options.server
         environ['SERVER_PORT'] = self.options.port
-        environ['wsgi.version'] = (1,0)
-        environ['wsgi.url_scheme'] = 'http'
+        environ['wsgi.version'] = (1, 0)
+        environ['wsgi.url_scheme'] = scheme
         environ['wsgi.input'] = StringIO()
         environ['wsgi.errors'] = StringIO()
         environ['wsgi.multithread'] = False
         environ['wsgi.multiprocess'] = False
         environ['wsgi.run_once'] = False
         environ['wsgi.handleErrors'] = self.options.handle_errors
+        if scheme == 'https':
+            environ['HTTPS'] = 'on'
         return environ
 
     def get_environ(self, method, uri, headers, data=None, data_type=None):

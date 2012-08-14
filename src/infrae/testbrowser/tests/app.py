@@ -4,7 +4,6 @@
 # $Id$
 
 import os
-import operator
 import urlparse
 
 def test_app_write(environ, start_response):
@@ -86,12 +85,13 @@ class TestAppCount(object):
 
 class TestAppRedirect(object):
 
-    def __init__(self, code='301 Moved Permanently'):
+    def __init__(self, code='301 Moved Permanently', url='/target.html'):
         self.code = code
+        self.url = url
 
     def __call__(self, environ, start_response):
         if environ['PATH_INFO'] == '/redirect.html':
-            start_response(self.code, [('Location', '/target.html'),])
+            start_response(self.code, [('Location', self.url),])
             return []
         start_response('200 Ok', [('Content-type', 'text/html'),])
         return ['<html><p>It works!</p></html>']
