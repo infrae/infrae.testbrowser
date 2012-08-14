@@ -516,6 +516,9 @@ class BrowsingTestCase(browser.BrowserTestCase):
             self.assertEqual(browser.url, '/redirect.html')
             self.assertEqual(browser.status, '301 Moved Permanently')
             self.assertEqual(browser.contents, '')
+            self.assertEqual(
+                browser.headers.get('Location'),
+                '/target.html')
 
     def test_get_permanent_redirect(self):
         with Browser(app.TestAppRedirect()) as browser:
