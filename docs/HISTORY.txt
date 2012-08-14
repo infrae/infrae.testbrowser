@@ -4,7 +4,14 @@ Changelog
 2.0 (unreleased)
 ----------------
 
-* ...
+* Add the option ``follow_external_redirect`` for the standard browser.
+
+* Improve cookie support.
+
+* Improve default WSGI environ to support HTTPS variable, if the port
+  is set to ``443``.
+
+* Improve Selenium browser.
 
 2.0b1 (2011/11/07)
 ------------------

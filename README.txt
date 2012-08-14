@@ -121,6 +121,13 @@ The following options are attributes of the options object, example::
   Boolean indicating if a redirect must be automatically
   followed. Default to True.
 
+``follow_external_redirect``
+  Boolean indicating if a redirect to a url that doesn't match the
+  current server and port set in options should be automatically
+  followed and handled by the current WSGI application. Activating it,
+  will update the options ``server`` and ``port`` to the new value
+  defined by the redirect URL. Default to False.
+
 ``handle_errors``
   Set the WSGI flag ``wsgi.handleErrors`` in the WSGI
   environment. Default to True.

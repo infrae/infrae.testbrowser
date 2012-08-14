@@ -26,6 +26,7 @@ HISTORY_LENGTH = 20
 
 class Options(CustomizableOptions):
     # Browser options
+    follow_external_redirect = False
     follow_redirect = True
     cookie_support = True
     handle_errors = True
@@ -169,17 +170,6 @@ class Browser(object):
     def _query_application(self, url, method, query, data, data_type):
         self.__cache = {}
         info = urlparse.urlparse(url)
-        if info.netloc:
-            # If a netloc is present, update the options for server and port.
-            if ':' in info.netloc:
-                self.options.server, self.options.port = \
-                    info.netloc.split(':', 1)
-            else:
-                self.options.server = info.netloc
-                if info.scheme == 'https':
-                    self.options.port = '443'
-                else:
-                    self.options.port = '80'
         query_string = urllib.urlencode(query) if query else ''
         uri = urlparse.urlunparse(
             (None,
@@ -213,8 +203,33 @@ class Browser(object):
                 self.__method = 'GET'
             location = self.headers.get('Location')
             assert location is not None, 'Redirect without location header'
-            return self._query_application(
-                location, self.__method, None, None, None)
+            location_url = urlparse.urlparse(location)
+            location_uri = None
+            if location_url.netloc:
+                # Inspect redirect URL
+                if ':' in location_url.netloc:
+                    server, port = location_url.netloc.split(':', 1)
+                else:
+                    server = location_url.netloc
+                    if location_url.scheme == 'https':
+                        port = '443'
+                    else:
+                        port = '80'
+                if server != self.options.server or port != self.options.port:
+                    if self.options.follow_external_redirect:
+                        # XXX Should include this information in history as well
+                        self.options.server = server
+                        self.options.port = port
+                        location_uri = urlparse.urlunparse(
+                            (None, None) + location_url[2:])
+                else:
+                    location_uri = urlparse.urlunparse(
+                        (None, None) + location_url[2:])
+            else:
+                location_uri = location
+            if location_uri is not None:
+                return self._query_application(
+                    location_uri, self.__method, None, None, None)
 
         # Parse HTML or XML
         if response is not None:

@@ -585,6 +585,14 @@ class BrowsingTestCase(browser.BrowserTestCase):
         with Browser(app.TestAppRedirect(
                 code='302 Moved', url='https://other/index.html')) as browser:
             browser.open('/redirect.html', method='GET')
+            self.assertEqual(browser.url, '/redirect.html')
+            self.assertEqual(browser.status, '302 Moved')
+            self.assertEqual(
+                browser.headers.get('Location'),
+                'https://other/index.html')
+
+            browser.options.follow_external_redirect = True
+            browser.reload()
             self.assertEqual(browser.options.server, 'other')
             self.assertEqual(browser.options.port, '443')
             self.assertEqual(browser.method, 'GET')
@@ -596,6 +604,14 @@ class BrowsingTestCase(browser.BrowserTestCase):
         with Browser(app.TestAppRedirect(
                 url='https://other/index.html')) as browser:
             browser.open('/redirect.html', method='GET')
+            self.assertEqual(browser.url, '/redirect.html')
+            self.assertEqual(browser.status, '301 Moved Permanently')
+            self.assertEqual(
+                browser.headers.get('Location'),
+                'https://other/index.html')
+
+            browser.options.follow_external_redirect = True
+            browser.reload()
             self.assertEqual(browser.options.server, 'other')
             self.assertEqual(browser.options.port, '443')
             self.assertEqual(browser.method, 'GET')
