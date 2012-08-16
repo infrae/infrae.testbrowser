@@ -4,11 +4,12 @@
 # $Id$
 
 import collections
-import lxml.html
+import json
 import lxml.etree
+import lxml.html
+import re
 import urllib
 import urlparse
-import re
 
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
@@ -64,6 +65,7 @@ class Browser(object):
         self.__cache = {}
         self.html = None
         self.xml = None
+        self.json = None
 
     def __enter__(self):
         return self
@@ -242,6 +244,8 @@ class Browser(object):
                     self.html.resolve_base_href()
                 elif content_type.startswith('text/xml'):
                     self.xml = lxml.etree.fromstring(data)
+                elif content_type.startswith('application/json'):
+                    self.json = json.loads(self.contents)
 
     def open(self, url, method='GET', query=None,
              form=None, form_charset='utf-8', form_enctype='application/x-www-form-urlencoded'):
@@ -252,6 +256,7 @@ class Browser(object):
         data_type = None
         self.html = None
         self.xml = None
+        self.json = None
         self.__response = None
         self.__method = method
         if form is not None:
@@ -282,6 +287,7 @@ class Browser(object):
         assert self.__url is not None, 'No URL to reload'
         self.html = None
         self.xml = None
+        self.json = None
         self.__response = None
         self._query_application(
             self.__url, self.__method, None, self.__data, self.__data_type)
