@@ -2,7 +2,7 @@
 # Copyright (c) 2011-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
 
-from collections import defaultdict
+from collections import namedtuple
 
 from infrae.testbrowser.utils import node_to_node
 from infrae.testbrowser.utils import none_filter
@@ -35,6 +35,12 @@ class Clickable(object):
     def click(self):
         return self.element.click()
 
+    def __eq__(self, other):
+        return self.__str == other
+
+    def __ne__(self, other):
+        return self.__str != other
+
     def __str__(self):
         if isinstance(self.__str, unicode):
             return self.__str.encode('utf-8', 'replace')
@@ -66,81 +72,134 @@ def ClickablesFactory(factory):
     return Clickables
 
 
+ExpressionType = namedtuple(
+    'ExpressionType',
+    ('converter', 'filter', 'nodes', 'node'))
+
 EXPRESSION_TYPE = {
-    'text': (
+    'text': ExpressionType(
         node_to_text,
         none_filter,
-        lambda elements: list(elements)),
-    'link': (
+        lambda elements: list(elements),
+        lambda element: element),
+    'link': ExpressionType(
         node_to_node,
         compound_filter_factory(visible_filter, tag_filter('a')),
-        ClickablesFactory(Link)),
-    'clickable': (
+        ClickablesFactory(Link),
+        Link),
+    'clickable': ExpressionType(
         node_to_node,
         visible_filter,
-        ClickablesFactory(Clickable))
+        ClickablesFactory(Clickable),
+        Clickable)
     }
 
 
 _marker = object()
 
 
-class CompoundResult(object):
 
-    def __init__(self, runner, default_expressions, others_expressions):
-        self.__runner = runner
-
-
-class Expressions(object):
+class ExpressionList(object):
 
     def __init__(self, runner):
-        self.__runner = runner
-        self.__expressions = defaultdict(lambda: tuple((None, None)))
-        self.__compound = {}
+        self._runner = runner
+        self._expressions = {}
 
-    def add(self, name, xpath=None, type='text', css=None, compound=None):
-        if compound is None:
-            assert type in EXPRESSION_TYPE, u'Unknown expression type %s' % type
-            finder = None
-            if xpath is not None:
-                finder = lambda d: d.get_elements(xpath=xpath)
-            elif css is not None:
-                finder = lambda d: d.get_elements(css=css)
-            assert finder is not None, \
-                u'You need to provide an XPath or CSS expression'
-            self.__expressions[name] = (finder, type)
-        else:
-            self.__compound[name] = compound
+    def _execute(self, name, default=_marker):
+        if name in self._expressions:
+            finder, type, unique = self._expressions[name]
+            if finder is not None:
+                expression = EXPRESSION_TYPE[type]
+                nodes = filter(expression.filter,
+                               map(expression.converter,
+                                   self._runner(finder)))
+                if unique:
+                    if len(nodes) > 1:
+                        raise AssertionError(
+                            u'Multiple elements found for %s where only '
+                            u'one was expected.' % name)
+                    if not len(nodes):
+                        return None
+                    return expression.node(nodes[0])
+                return expression.nodes(nodes)
+        return default
 
     def __getattr__(self, name):
+        value = self._execute(name, default=_marker)
+        if value is not _marker:
+            return value
+        raise AttributeError(name)
 
-        def get_expression(name):
-            finder, type = self.__expressions[name]
-            if finder is not None:
-                node_converter, node_filter, factory = EXPRESSION_TYPE[type]
-                return factory(filter(node_filter,
-                                      map(node_converter,
-                                          self.__runner(finder))))
-            return _marker
 
-        expression_values = get_expression(name)
-        if expression_values is not _marker:
-            return expression_values
+class NestedResult(ExpressionList):
 
-        if name in self.__compound:
-            initial = True
-            definitions = []
-            for key, expression_name in self.__compound[name].items():
-                expression_values = get_expression(expression_name)
-                if expression_values is _marker:
-                    continue
-                for position, value in enumerate(expression_values):
-                    if initial:
-                        definitions.append({key: value})
-                    else:
-                        definitions[position][key] = value
-                initial = False
-            return definitions
+    def __init__(self, runner, node, definition):
+        super(NestedResult, self).__init__(runner)
+        self._keys = []
+        for name, options in definition.items():
+            if name is None and isinstance(options, (list, tuple)):
+                self._keys = options
+                continue
+            finder = None
+            if 'xpath' in options:
+                finder = (lambda xpath: lambda d: node.get_elements(
+                        xpath=xpath))(options['xpath'])
+            elif 'css' in options:
+                finder = (lambda css: lambda d: node.get_elements(
+                        css=css))(options['css'])
+            self._expressions[name] = (
+                finder,
+                options.get('type', 'text'),
+                options.get('unique', False))
 
+    def __repr__(self):
+        values = []
+        for key in self._keys:
+            values.append('%r: %r' % (key, self._execute(key, default=None)))
+        return '{' + ', '.join(values) + '}'
+
+    def __eq__(self, other):
+        if isinstance(other, dict):
+            for key, expected in other.items():
+                value = self._execute(key, default=_marker)
+                if value != expected:
+                    return False
+            return True
+        return False
+
+
+class Expressions(ExpressionList):
+
+    def __init__(self, runner):
+        super(Expressions, self).__init__(runner)
+        self._nested = {}
+
+    def add(self, name, xpath=None, type='text', css=None, nested=None, unique=False):
+        finder = None
+        if xpath is not None:
+            finder = lambda d: d.get_elements(xpath=xpath)
+        elif css is not None:
+            finder = lambda d: d.get_elements(css=css)
+        if finder is None:
+            raise AssertionError(
+                u'You need to provide an XPath or CSS expression')
+        if nested is None:
+            if type not in EXPRESSION_TYPE:
+                raise AssertionError(u'Unknown expression type %s' % type)
+            self._expressions[name] = (finder, type, unique)
+        else:
+            self._nested[name] = (finder, nested)
+
+    def __getattr__(self, name):
+        if name in self._nested:
+            finder, nested = self._nested[name]
+            values = []
+            for node in self._runner(finder):
+                values.append(NestedResult(self._runner, node, nested))
+            return values
+
+        values = self._execute(name, default=_marker)
+        if values is not _marker:
+            return values
         raise AttributeError(name)
 

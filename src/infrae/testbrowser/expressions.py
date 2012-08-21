@@ -45,6 +45,12 @@ class Link(object):
             return self.text.encode('utf-8', 'replace')
         return str(self.text)
 
+    def __eq__(self, other):
+        return self.text == other
+
+    def __ne__(self, other):
+        return self.text != other
+
     def __unicode__(self):
         return unicode(self.text)
 

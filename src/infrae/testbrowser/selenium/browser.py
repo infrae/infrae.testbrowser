@@ -59,6 +59,12 @@ def SeleniumElementProxyFactory(browser):
 
             return attribute
 
+    def __eq__(self, other):
+        return self.__element.text == other
+
+    def __ne__(self, other):
+        return self.__element.text != other
+
     return SeleniumElementProxy
 
 
