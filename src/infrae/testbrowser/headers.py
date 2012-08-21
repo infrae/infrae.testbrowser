@@ -1,6 +1,6 @@
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id: headers.py 44932 2010-09-02 10:24:12Z sylvain $
 
 
 def format_http_header(name):

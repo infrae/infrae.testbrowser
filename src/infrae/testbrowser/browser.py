@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id$
 
 import collections
 import json
@@ -11,13 +10,13 @@ import re
 import urllib
 import urlparse
 
+from infrae.testbrowser.cookies import Cookies
 from infrae.testbrowser.expressions import Expressions, Link
 from infrae.testbrowser.form import Form
 from infrae.testbrowser.interfaces import IAdvancedBrowser, _marker
 from infrae.testbrowser.interfaces import ICustomizableOptions
 from infrae.testbrowser.utils import Macros, CustomizableOptions, Handlers
 from infrae.testbrowser.utils import encode_multipart_form_data, format_auth
-from infrae.testbrowser.utils import Cookies
 from infrae.testbrowser.wsgi import WSGIServer
 
 from zope.interface import implements
@@ -196,7 +195,7 @@ class Browser(object):
         if self.options.cookie_support:
             cookie = self.headers.get('Set-Cookie')
             if cookie:
-                self.cookies.set(cookie)
+                self.cookies.parse(cookie)
 
         # Redirect
         if (self.status_code in (301, 302, 303) and

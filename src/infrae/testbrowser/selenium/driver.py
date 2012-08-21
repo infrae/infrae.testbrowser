@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2011 Infrae. All rights reserved.
+# Copyright (c) 2011-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id$
 
 import json
 import atexit
@@ -178,6 +177,10 @@ class SeleniumSession(object):
     def contents(self):
         return self.__send('GET', '/source')['value']
 
+    @property
+    def cookies(self):
+        return self.__send('GET', '/cookie')['value']
+
     def refresh(self):
         self.__send('POST', '/refresh')
 
@@ -218,6 +221,12 @@ class SeleniumSession(object):
     def get_elements(self, **how):
         data = self.__send('POST', '/elements', get_element_parameters(how))
         return map(lambda d: self.__element_factory(d), data['value'])
+
+    def set_cookie(self, name, value):
+        self.__send('POST', '/cookie', {'name': name, 'value': value})
+
+    def clear_cookies(self):
+        self.__send('DELETE', '/cookie')
 
 
 class SeleniumElement(object):

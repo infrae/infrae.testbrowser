@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2011 Infrae. All rights reserved.
+# Copyright (c) 2011-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id$
 
 import urlparse
 import lxml.html
 
 from infrae.testbrowser.interfaces import IBrowser, _marker
 from infrae.testbrowser.interfaces import ISeleniumCustomizableOptions
+from infrae.testbrowser.selenium.cookies import Cookies
 from infrae.testbrowser.selenium.driver import DRIVERS
 from infrae.testbrowser.selenium.expressions import Expressions, Link
 from infrae.testbrowser.selenium.form import Form
@@ -32,7 +32,6 @@ class Options(CustomizableOptions):
         super(Options, self).__init__(ISeleniumCustomizableOptions)
         if self.selenium_platform is None:
             self.selenium_platform = get_current_platform()
-
 
 
 def SeleniumElementProxyFactory(browser):
@@ -71,6 +70,7 @@ class Browser(object):
         self.inspect = Expressions(lambda f: f(self.__driver))
         self.macros = Macros(self)
         self.handlers = Handlers()
+        self.cookies = Cookies(None)
         self.__server = Server(app, self.options)
         self.__driver = None
         self.__user = None
@@ -113,6 +113,7 @@ class Browser(object):
             self.__driver = DRIVERS.get(
                 self.options,
                 SeleniumElementProxyFactory(self))
+            self.cookies = Cookies(self.__driver)
             self.__server.start()
 
     def __absolute_url(self, url):

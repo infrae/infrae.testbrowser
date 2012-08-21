@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id$
 
 import os
 import urlparse
@@ -48,6 +47,11 @@ def test_app_text(environ, start_response):
     return ['Hello world!']
 
 
+def test_app_json(environ, start_response):
+    start_response('200 Ok', [('Content-type', 'application/json')])
+    return ['[true, false, 1, "a"]']
+
+
 def test_app_data(environ, start_response):
     start_response('200 Ok', [('Content-type', 'text/html'),])
     return ['<html><ul>',
@@ -67,6 +71,30 @@ def test_app_environ(environ, start_response):
 def test_app_empty(environ, start_response):
     start_response('200 Ok', [('Content-type', 'text/html'),])
     return []
+
+
+def test_app_cookies_server(environ, start_response):
+    headers = [('Content-type', 'text/html')]
+    if 'HTTP_COOKIE' not in environ.keys():
+        # No cookies, set cookies !
+        headers.append(('Set-Cookie', 'browser=testing;Path=/'))
+    start_response('200 Ok', headers)
+    yield '<html><ul>'
+    if 'HTTP_COOKIE' in environ.keys():
+        # Cookies, display them !
+        for cookie in environ['HTTP_COOKIE'].split(';'):
+            yield '<li>' + cookie.strip() + '</li>'
+    yield '</ul></html>'
+
+def test_app_cookies_client(environ, start_response):
+    headers = [('Content-type', 'text/html')]
+    start_response('200 Ok', headers)
+    yield '<html><ul>'
+    if 'HTTP_COOKIE' in environ.keys():
+        # Cookies, display them !
+        for cookie in environ['HTTP_COOKIE'].split(';'):
+            yield '<li>' + cookie.strip() + '</li>'
+    yield '</ul></html>'
 
 
 class TestAppCount(object):

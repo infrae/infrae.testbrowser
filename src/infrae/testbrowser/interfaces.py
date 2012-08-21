@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id$
 
 from zope.interface import Interface, Attribute
 
@@ -15,6 +14,7 @@ class IBrowser(Interface):
     macros = Attribute(u"Browser macros")
     options = Attribute(u"Options")
     handlers = Attribute(u"Handlers used to customize browser behavior")
+    cookies = Attribute(u"Handle access to the cookies")
 
     url = Attribute(u"Currently viewed URL")
     location = Attribute(u"Currently viewed path")
@@ -78,6 +78,7 @@ class IAdvancedBrowser(IBrowser):
     headers = Attribute(u"Dictionary like access to response headers")
     history = Attribute(u"Last previously viewed URLs")
     xml = Attribute(u"XML payload parsed by LXML, or None")
+    json = Attribute(u"JSON payload parsed, or None")
 
     def set_request_header(key, value):
         """Set an HTTP header ``key`` to the given ``value`` for each

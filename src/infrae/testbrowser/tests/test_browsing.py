@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id$
 
 import operator
 import os.path
@@ -118,17 +117,19 @@ class BrowsingTestCase(browser.BrowserTestCase):
             '</ul></html>')
 
     def test_iterator_empty(self):
-        browser = Browser(app.test_app_empty)
-        browser.open('/index.html')
-        self.assertEqual(browser.url, '/index.html')
-        self.assertEqual(browser.method, 'GET')
-        self.assertEqual(browser.status, '200 Ok')
-        self.assertEqual(browser.status_code, 200)
-        self.assertEqual(browser.contents, '')
-        self.assertEqual(browser.headers, {'content-type': 'text/html'})
-        self.assertEqual(browser.content_type, 'text/html')
-        self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
-        self.assertEqual(browser.html, None)
+        with Browser(app.test_app_empty) as browser:
+            browser.open('/index.html')
+            self.assertEqual(browser.url, '/index.html')
+            self.assertEqual(browser.method, 'GET')
+            self.assertEqual(browser.status, '200 Ok')
+            self.assertEqual(browser.status_code, 200)
+            self.assertEqual(browser.contents, '')
+            self.assertEqual(browser.headers, {'content-type': 'text/html'})
+            self.assertEqual(browser.content_type, 'text/html')
+            self.assertEqual(browser.headers.get('Content-Type'), 'text/html')
+            self.assertEqual(browser.html, None)
+            self.assertEqual(browser.xml, None)
+            self.assertEqual(browser.json, None)
 
     def test_text(self):
         with Browser(app.test_app_text) as browser:
@@ -140,6 +141,23 @@ class BrowsingTestCase(browser.BrowserTestCase):
             self.assertEqual(browser.content_type, 'text/plain')
             self.assertEqual(browser.headers.get('Content-Type'), 'text/plain')
             self.assertEqual(browser.html, None)
+            self.assertEqual(browser.xml, None)
+            self.assertEqual(browser.json, None)
+
+    def test_json(self):
+        with Browser(app.test_app_json) as browser:
+            browser.open('/data')
+            self.assertEqual(browser.url, '/data')
+            self.assertEqual(browser.status, '200 Ok')
+            self.assertEqual(browser.status_code, 200)
+            self.assertEqual(browser.contents, '[true, false, 1, "a"]')
+            self.assertEqual(browser.content_type, 'application/json')
+            self.assertEqual(
+                browser.headers.get('Content-Type'),
+                'application/json')
+            self.assertEqual(browser.html, None)
+            self.assertEqual(browser.xml, None)
+            self.assertEqual(browser.json, [True, False, 1, u'a'])
 
     def test_history(self):
         with Browser(app.test_app_iter) as browser:
@@ -483,30 +501,26 @@ class BrowsingTestCase(browser.BrowserTestCase):
              'content length:n/a'])
 
     def test_form_invalid(self):
-        browser = Browser(app.test_app_data)
-        self.assertRaises(
-            AssertionError,
-            browser.open, 'http://localhost/root.exe',
-            method='GET',
-            form={'position': '42', 'name': 'index'},
-            query={'color': 'blue'})
-        self.assertRaises(
-            AssertionError,
-            browser.open, 'http://localhost/root.exe',
-            method='GET',
-            form={'position': '42', 'name': 'index'},
-            form_enctype='multipart/form-data')
-        self.assertRaises(
-            AssertionError,
-            browser.open, 'http://localhost/root.exe',
-            method='POST',
-            form={'position': '42', 'name': 'index'},
-            form_enctype='x-unknown/ultra-part')
-        self.assertRaises(
-            AssertionError,
-            browser.open, 'http://localhost/root.exe',
-            method='PUT',
-            form={'position': '42', 'name': 'index'})
+        with Browser(app.test_app_data) as browser:
+            with self.assertRaises(AssertionError):
+                browser.open('http://localhost/root.exe',
+                             method='GET',
+                             form={'position': '42', 'name': 'index'},
+                             query={'color': 'blue'})
+            with self.assertRaises(AssertionError):
+                browser.open('http://localhost/root.exe',
+                             method='GET',
+                             form={'position': '42', 'name': 'index'},
+                             form_enctype='multipart/form-data')
+            with self.assertRaises(AssertionError):
+                browser.open('http://localhost/root.exe',
+                             method='POST',
+                             form={'position': '42', 'name': 'index'},
+                             form_enctype='x-unknown/ultra-part')
+            with self.assertRaises(AssertionError):
+                browser.open('http://localhost/root.exe',
+                             method='PUT',
+                             form={'position': '42', 'name': 'index'})
 
     def test_disabled_redirect(self):
         with Browser(app.TestAppRedirect()) as browser:

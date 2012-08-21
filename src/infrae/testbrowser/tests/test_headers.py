@@ -1,6 +1,6 @@
-# Copyright (c) 2010-2011 Infrae. All rights reserved.
+# -*- coding: utf-8 -*-
+# Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id: test_headers.py 42342 2010-05-25 09:49:05Z sylvain $
 
 import unittest
 
