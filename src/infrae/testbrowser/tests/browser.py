@@ -73,7 +73,7 @@ class BrowserTestCase(unittest.TestCase):
             self.assertNotEqual(browser.html, None)
             self.assertEqual(
                 browser.html.xpath('//ul/li/text()'),
-                ['food=vegetables', 'drink=sparkling%20water'])
+                ['food=vegetables', 'drink=sparkling water'])
             # You can clear all cookies
             browser.cookies.clear()
             self.assertEqual(len(browser.cookies), 0)

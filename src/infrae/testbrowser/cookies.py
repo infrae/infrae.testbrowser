@@ -2,9 +2,7 @@
 # Copyright (c) 2012  Infrae. All rights reserved.
 # See also LICENSE.txt
 
-
 import re
-import urllib
 
 
 class Cookie(object):
@@ -54,9 +52,9 @@ class Cookie(object):
                 else:
                     return result
         if result is not None:
-            result.options[name] = urllib.unquote(value)
+            result.options[name] = value
         else:
-            result = cls(name, urllib.unquote(value))
+            result = cls(name, value)
         return cls.parse(text[l:], result)
 
 
@@ -111,6 +109,6 @@ class Cookies(object):
             for cookie in self.cookies.values():
                 if result:
                     result += "; "
-                result += '%s=%s' % (cookie.name, urllib.quote(cookie.value))
+                result += '%s=%s' % (cookie.name, cookie.value)
             return {'Cookie': result}
         return {}

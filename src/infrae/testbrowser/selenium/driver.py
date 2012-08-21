@@ -2,10 +2,11 @@
 # Copyright (c) 2011-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
 
-import json
 import atexit
+import json
+import unittest
 import urllib2
-from unittest import SkipTest
+import urlparse
 
 from zope.testing.cleanup import addCleanUp
 
@@ -34,7 +35,7 @@ class Connection(object):
         except urllib2.URLError as error:
             if error.args[0].errno in [61, 111]:
                 # Those are errno for connection refured.
-                raise SkipTest("Selenium unavailable")
+                raise unittest.SkipTest("Selenium unavailable")
             raise errors.SelectionConnectionError({'message': str(error)})
 
     def receive(self, response):
@@ -104,6 +105,9 @@ class Seleniums(object):
                connection_options.selenium_platform,
                connection_options.browser)
         if key in self.__sessions:
+            session = self.__sessions[key]
+            # Clear existing cookies
+            session.clear_cookies()
             return self.__sessions[key]
 
         session = Selenium(
@@ -123,7 +127,7 @@ class Seleniums(object):
         for session in self.all():
             try:
                 session.quit()
-            except SkipTest:
+            except unittest.SkipTest:
                 pass
         self.__sessions = {}
 
@@ -223,7 +227,10 @@ class SeleniumSession(object):
         return map(lambda d: self.__element_factory(d), data['value'])
 
     def set_cookie(self, name, value):
-        self.__send('POST', '/cookie', {'name': name, 'value': value})
+        self.__send(
+            'POST', '/cookie',
+            {'cookie': {'name': name, 'value': value,
+                        'secure': False, 'path': '/'}})
 
     def clear_cookies(self):
         self.__send('DELETE', '/cookie')
