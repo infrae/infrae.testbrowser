@@ -98,12 +98,23 @@ The following properties are helpful as well:
 ``headers``
   Dictionary like access to response headers.
 
+``cookies``
+  Dictionary like object to access existing cookies.
+
 ``contents``
   Payload of the currently viewed page.
 
 ``html``
-  If response was an HTML response, LXML parsed tree containing this
-  last one.
+  If the response was an HTML document, this contains an LXML parsed
+  tree of the document.
+
+``xml``
+  If the response was an XML response, this contains an LXML parsed
+  tree of it.
+
+``json``
+  If the response was a JSON response, this contains the loaded JSON
+  object.
 
 ``options``
   Access to browser options.
@@ -334,6 +345,9 @@ Selenium browser
 
    - you can't change hidden fields (you can only do what the user can
      do).
+
+   Cookies do work however.
+
 
 Selenium Browser options
 ------------------------

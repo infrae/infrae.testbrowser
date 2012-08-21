@@ -6,7 +6,6 @@ import atexit
 import json
 import unittest
 import urllib2
-import urlparse
 
 from zope.testing.cleanup import addCleanUp
 
@@ -83,11 +82,10 @@ class Selenium(object):
         self.__connection = Connection(
             'http://%s:%s/wd/hub' % (host, port))
 
-    def new_session(self, options, element_proxy=None):
+    def new_session(self, options, proxy=None):
         data = self.__connection.send(
             'POST', '/session', {'desiredCapabilities': options})
-        return SeleniumSession(
-            self.__connection, data, element_proxy)
+        return SeleniumSession(self.__connection, data, proxy)
 
 
 class Seleniums(object):
@@ -158,144 +156,145 @@ class SeleniumSession(object):
     """A selenium session.
     """
 
-    def __init__(self, connection, info, element_proxy=None):
+    def __init__(self, connection, info, proxy=None):
         self.__connection = connection
         self.__path = ''.join(('/session/', info['sessionId']))
         self.__capabilities = info['value']
-        self.__element_proxy = element_proxy
-        self.__send('POST', '/timeouts/async_script', {'ms': 120000})
+        self.__proxy = proxy
+        self._send('POST', '/timeouts/async_script', {'ms': 120000})
 
-    def __send(self, method, path, data=None):
+    def _send(self, method, path, data=None):
         return self.__connection.send(
             method, ''.join((self.__path, path)), data)
 
+    def _create_element(self, data):
+        # Create a Selenium element out of the data.
+        element = SeleniumElement(self.__connection, self.__path, data, self)
+        if self.__proxy is not None:
+            element = self.__proxy(self, element)
+        return element
+
     @property
     def title(self):
-        return self.__send('GET', '/title')['value']
+        return self._send('GET', '/title')['value']
 
     @property
     def url(self):
-        return self.__send('GET', '/url')['value']
+        return self._send('GET', '/url')['value']
 
     @property
     def contents(self):
-        return self.__send('GET', '/source')['value']
+        return self._send('GET', '/source')['value']
 
     @property
     def cookies(self):
-        return self.__send('GET', '/cookie')['value']
+        return self._send('GET', '/cookie')['value']
 
     def refresh(self):
-        self.__send('POST', '/refresh')
+        self._send('POST', '/refresh')
 
     def back(self):
-        self.__send('POST', '/back')
+        self._send('POST', '/back')
 
     def forward(self):
-        self.__send('POST', '/forward')
+        self._send('POST', '/forward')
 
     def open(self, url):
-        self.__send('POST', '/url', {'url': url})
+        self._send('POST', '/url', {'url': url})
 
     def close(self):
-        self.__send('DELETE', '/window')
+        self._send('DELETE', '/window')
 
     def execute(self, script, args):
-        return self.__send(
+        return self._send(
             'POST', '/execute_async',
             {'script': script, 'args': args})['value']
 
     def quit(self):
-        self.__send('DELETE', '')
-
-    def __element_factory(self, data):
-        element = SeleniumElement(self.__connection, self.__path, data)
-        if self.__element_proxy is not None:
-            element = self.__element_proxy(self, element)
-        return element
+        self._send('DELETE', '')
 
     def get_active_element(self):
-        data = self.__send('POST', '/element/active')
-        return self.__element_factory(data['value'])
+        data = self._send('POST', '/element/active')
+        return self._create_element(data['value'])
 
     def get_element(self, **how):
-        data = self.__send('POST', '/element', get_element_parameters(how))
-        return self.__element_factory(data['value'])
+        data = self._send('POST', '/element', get_element_parameters(how))
+        return self._create_element(data['value'])
 
     def get_elements(self, **how):
-        data = self.__send('POST', '/elements', get_element_parameters(how))
-        return map(lambda d: self.__element_factory(d), data['value'])
+        data = self._send('POST', '/elements', get_element_parameters(how))
+        return map(lambda d: self._create_element(d), data['value'])
 
     def set_cookie(self, name, value):
-        self.__send(
+        self._send(
             'POST', '/cookie',
             {'cookie': {'name': name, 'value': value,
                         'secure': False, 'path': '/'}})
 
     def clear_cookies(self):
-        self.__send('DELETE', '/cookie')
+        self._send('DELETE', '/cookie')
 
 
 class SeleniumElement(object):
 
-    def __init__(self, connection, session_path, info):
+    def __init__(self, connection, path, info, session):
         self.__connection = connection
-        self.__session_path = session_path
-        self.__path = ''.join((session_path, '/element/', info['ELEMENT']))
+        self.__session = session
+        self.__path = ''.join((path, '/element/', info['ELEMENT']))
 
-    def __send(self, method, path, data=None):
+    def _send(self, method, path, data=None):
         return self.__connection.send(
             method, ''.join((self.__path, path)), data)
 
+    def _create_element(self, data):
+        return self.__session._create_element(data)
+
     @property
     def tag(self):
-        return self.__send('GET', '/name')['value']
+        return self._send('GET', '/name')['value']
 
     @property
     def text(self):
-        return self.__send('GET', '/text')['value']
+        return self._send('GET', '/text')['value']
 
     @property
     def value(self):
-        return self.__send('GET', '/value')['value']
+        return self._send('GET', '/value')['value']
 
     @property
     def is_enabled(self):
-        return self.__send('GET', '/enabled')['value']
+        return self._send('GET', '/enabled')['value']
 
     @property
     def is_displayed(self):
-        return self.__send('GET', '/displayed')['value']
+        return self._send('GET', '/displayed')['value']
 
     @property
     def is_selected(self):
-        return self.__send('GET', '/selected')['value']
+        return self._send('GET', '/selected')['value']
 
     def send_keys(self, keys):
-        self.__send('POST', '/value', {'value': list(keys)})
+        self._send('POST', '/value', {'value': list(keys)})
 
     def click(self):
-        self.__send('POST', '/click')
+        self._send('POST', '/click')
 
     def clear(self):
-        self.__send('POST', '/clear')
+        self._send('POST', '/clear')
 
     def submit(self):
-        self.__send('POST', '/submit')
+        self._send('POST', '/submit')
 
     def get_attribute(self, name):
-        return self.__send('GET', ''.join(('/attribute/', name)))['value']
+        return self._send('GET', ''.join(('/attribute/', name)))['value']
 
     def get_css(self, name):
-        return self.__send('GET', ''.join(('/css/', name)))['value']
-
-    def __element_factory(self, data):
-        return self.__class__(self.__connection, self.__session_path, data)
+        return self._send('GET', ''.join(('/css/', name)))['value']
 
     def get_element(self, **how):
-        data = self.__send('POST', '/element', get_element_parameters(how))
-        return self.__element_factory(data['value'])
+        data = self._send('POST', '/element', get_element_parameters(how))
+        return self._create_element(data['value'])
 
     def get_elements(self, **how):
-        data = self.__send('POST', '/elements', get_element_parameters(how))
-        return map(lambda d: self.__element_factory(d), data['value'])
+        data = self._send('POST', '/elements', get_element_parameters(how))
+        return map(lambda d: self._create_element(d), data['value'])
