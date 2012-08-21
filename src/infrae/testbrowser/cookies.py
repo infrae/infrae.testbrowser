@@ -57,6 +57,9 @@ class Cookie(object):
             result = cls(name, value)
         return cls.parse(text[l:], result)
 
+    def __repr__(self):
+        return '%s=%s' % (self.name, self.value)
+
 
 class Cookies(object):
     """A cookie container.
@@ -112,3 +115,9 @@ class Cookies(object):
                 result += '%s=%s' % (cookie.name, cookie.value)
             return {'Cookie': result}
         return {}
+
+    def __repr__(self):
+        cookies = '; '.join(map(repr, self.cookies.values()))
+        if cookies:
+            return cookies
+        return '<no cookies>'

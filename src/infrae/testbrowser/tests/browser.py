@@ -19,6 +19,7 @@ class BrowserTestCase(unittest.TestCase):
             self.assertEqual(len(browser.cookies), 0)
             self.assertEqual(browser.cookies.keys(), [])
             self.assertNotIn('browser', browser.cookies)
+            self.assertEqual(repr(browser.cookies), '<no cookies>')
             browser.open('/page.html')
             self.assertEqual(len(browser.cookies), 1)
             self.assertEqual(browser.cookies, ['browser'])
@@ -36,6 +37,7 @@ class BrowserTestCase(unittest.TestCase):
             self.assertEqual(len(browser.cookies), 1)
             self.assertEqual(browser.cookies, ['browser'])
             self.assertEqual(browser.cookies['browser'].value, 'testing')
+            self.assertEqual(repr(browser.cookies), 'browser=testing')
 
     def test_cookies_client(self):
         """Test cookies can be set by the client.

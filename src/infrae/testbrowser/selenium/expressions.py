@@ -84,6 +84,13 @@ EXPRESSION_TYPE = {
 
 _marker = object()
 
+
+class CompoundResult(object):
+
+    def __init__(self, runner, default_expressions, others_expressions):
+        self.__runner = runner
+
+
 class Expressions(object):
 
     def __init__(self, runner):
@@ -121,12 +128,6 @@ class Expressions(object):
             return expression_values
 
         if name in self.__compound:
-
-            class Object(object):
-
-                def __init__(self, definition):
-                    self.__dict__.update(definition)
-
             initial = True
             definitions = []
             for key, expression_name in self.__compound[name].items():

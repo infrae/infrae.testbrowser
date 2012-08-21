@@ -12,6 +12,9 @@ class Cookie(object):
         self.value = options['value']
         self.options = options
 
+    def __repr__(self):
+        return '%s=%s' % (self.name, self.value)
+
 
 class Cookies(object):
     """Cookies API for selenium.
@@ -57,3 +60,10 @@ class Cookies(object):
         if isinstance(other, Cookies):
             other = other.keys()
         return self.keys() != other
+
+    def __repr__(self):
+        if self.__driver is not None:
+            cookies = '; '.join(map(repr, map(Cookie, self.__driver.cookies)))
+            if cookies:
+                return cookies
+        return '<no cookies>'
