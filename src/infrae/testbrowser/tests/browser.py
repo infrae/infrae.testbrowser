@@ -9,7 +9,7 @@ from infrae.testbrowser.tests import app
 
 class BrowserTestCase(unittest.TestCase):
 
-    def Browser(self):
+    def Browser(self, app):
         raise NotImplementedError
 
     def test_cookies_server(self):
