@@ -241,6 +241,7 @@ class NestedResultSet(object):
         if len(self._keys) == 1:
             if self._cache is None:
                 self._build()
+            key = key.lower()
             matches = filter(lambda item: key in item[0], self._cache)
             if not matches:
                 raise KeyError(key)
