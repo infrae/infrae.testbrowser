@@ -194,7 +194,7 @@ class NestedResult(ExpressionList):
             return True
         if len(self._keys) == 1:
             value = self._execute(self._keys[0], default=_marker)
-            if value == expected:
+            if value == other:
                 return True
         return False
 
