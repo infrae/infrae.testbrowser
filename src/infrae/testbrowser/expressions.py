@@ -4,6 +4,7 @@
 
 import lxml
 from collections import defaultdict
+from collections import namedtuple
 
 from infrae.testbrowser.utils import ExpressionResult
 from infrae.testbrowser.utils import node_to_node, none_filter
@@ -66,23 +67,32 @@ class Links(ExpressionResult):
                 map(lambda link: Link(link, browser), links)))
 
 
+
+ExpressionType = namedtuple(
+    'ExpressionType',
+    ('converter', 'filter', 'nodes', 'node'))
+
 EXPRESSION_TYPE = {
-    'node': (
+    'node': ExpressionType(
         node_to_node,
         none_filter,
-        lambda nodes, browser: list(nodes)),
-    'text': (
+        lambda nodes, browser: list(nodes),
+        lambda node, browser: node),
+    'text': ExpressionType(
         node_to_text,
         none_filter,
-        lambda nodes, browser: list(nodes)),
-    'normalized-text': (
+        lambda nodes, browser: list(nodes),
+        lambda node, browser: node),
+    'normalized-text': ExpressionType(
         node_to_normalized_text,
         none_filter,
-        lambda nodes, browser: list(nodes)),
-    'link': (
+        lambda nodes, browser: list(nodes),
+        lambda node, browser: node),
+    'link': ExpressionType(
         node_to_node,
         tag_filter('a'),
-        Links),
+        Links,
+        Link),
     }
 
 
@@ -90,27 +100,39 @@ class Expressions(object):
 
     def __init__(self, browser):
         self.__browser = browser
-        self.__expressions = defaultdict(lambda: tuple((None, None)))
+        self.__expressions = defaultdict(lambda: tuple((None, None, None)))
 
-    def add(self, name, xpath=None, type='text', css=None):
-        assert type in EXPRESSION_TYPE, u'Unknown expression type %s' % type
-        expression = None
+    def add(self, name, xpath=None, type='text', css=None, unique=False):
+        if type not in EXPRESSION_TYPE:
+            raise AssertionError(u'Unknown expression type %s' % type)
+        finder = None
         if xpath is not None:
-            expression = lxml.etree.XPath(xpath)
+            finder = lxml.etree.XPath(xpath)
         elif css is not None:
-            expression = lxml.cssselect.CSSSelector(css)
-        assert expression is not None, u'You need to provide an XPath or CSS expression'
-        self.__expressions[name] = (expression, type)
+            finder = lxml.cssselect.CSSSelector(css)
+        if finder is None:
+            raise AssertionError(
+                u'You need to provide an XPath or CSS expression')
+        self.__expressions[name] = (finder, type, unique)
 
     def __getattr__(self, name):
-        expression, type = self.__expressions[name]
-        if expression is not None:
-            assert self.__browser.html is not None, u'Not viewing HTML'
-            node_converter, node_filter, factory = EXPRESSION_TYPE[type]
-            return factory(filter(node_filter,
-                                  map(node_converter,
-                                      expression(self.__browser.html))),
-                           self.__browser)
+        finder, type, unique = self.__expressions[name]
+        if finder is not None:
+            if self.__browser.html is None:
+                raise AssertionError(u'Not viewing HTML')
+            expression = EXPRESSION_TYPE[type]
+            nodes = filter(expression.filter,
+                           map(expression.converter,
+                               finder(self.__browser.html)))
+            if unique:
+                if len(nodes) > 1:
+                    raise AssertionError(
+                        u'Multiple elements found for %s where only '
+                        u'one was expected.' % name)
+                if not len(nodes):
+                    return None
+                return expression.node(nodes[0], self.__browser)
+            return expression.nodes(nodes, self.__browser)
         raise AttributeError(name)
 
 

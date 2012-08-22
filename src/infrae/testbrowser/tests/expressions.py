@@ -116,7 +116,6 @@ class ExpressionsTestCase(unittest.TestCase):
 
             self.assertEqual(browser.location, '/contact.html')
 
-
     def test_link_css(self):
         with self.Browser(app.TestAppTemplate(
                 'link_expressions.html',
@@ -162,6 +161,42 @@ class ExpressionsTestCase(unittest.TestCase):
                       'Development ...',
                       'Advanced Lisp ...',
                       'Échange culturel ...']))
+
+    def test_unique_xpath(self):
+        with self.Browser(app.TestAppTemplate(
+                'link_expressions.html',
+                default_headers={'Content-type': 'text/html; charset=utf-8'})) as browser:
+            browser.inspect.add(
+                'title', '//h1', unique=True)
+            browser.inspect.add(
+                'address', '//address/a', type='link', unique=True)
+            browser.inspect.add(
+                'navigation', css='ul.navigation a', type='link', unique=True)
+            browser.inspect.add(
+                'footer', css='p.footer', unique=True)
+
+            browser.open('/development/lisp.html')
+            self.assertEqual(
+                browser.inspect.title,
+                'Links')
+            self.assertNotEqual(
+                browser.inspect.title,
+                'Tchernobyl')
+            self.assertEqual(
+                browser.inspect.address,
+                'Sylvain Viollon')
+            self.assertNotEqual(
+                browser.inspect.address,
+                'Arthur de Pandragor')
+            self.assertEqual(
+                browser.inspect.address.url,
+                'mailto:sylvain@infrae.com')
+            self.assertEqual(
+                browser.inspect.footer,
+                None)
+            self.assertRaises(
+                AssertionError,
+                operator.attrgetter('navigation'), browser.inspect)
 
     def test_http_encoding(self):
         with self.Browser(app.TestAppTemplate(

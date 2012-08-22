@@ -162,7 +162,7 @@ expression with it, and query them after on HTML pages::
   >>> self.assertEqual(browser.inspect.feedback, ['Everything ok'])
 
 
-``add(name, xpath=None, type='link', css=None)``
+``add(name, xpath=None, type='link', css=None, unique=False)``
   Add an expression called `name` that can be used to inspect the HTML
   content of the browser using the `xpath` expression (or the `css`
   one). `type` can be:
@@ -182,6 +182,10 @@ expression with it, and query them after on HTML pages::
   `clickable`
     Available only on selenium, that is a list of elements, that you
     can click on it (even if they are not links).
+
+  If ``unique`` is true, no more than one item matching will be
+  expected.  An error will be asserted if there are more items
+  matching, and ``None`` will be returned if none matched.
 
 Macros
 ------

@@ -46,7 +46,8 @@ def resolve_url(url, browser):
     """Resolve an absolute url given the current browser location.
     """
     parsed = urlparse.urlparse(urllib.unquote(url))
-    if not parsed.path.startswith('/'):
+    if (parsed.scheme in ('', 'http', 'https') and
+        not parsed.path.startswith('/')):
         # Be sure to always not have any relative links
         parsed = list(parsed)
         base = '/'.join(browser.location.split('/')[:-1])
