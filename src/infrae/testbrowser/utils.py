@@ -122,18 +122,18 @@ class File(object):
 
 
 def node_to_node(node):
-    """To be used with ExpressionResult.
+    """To be used with ResultSet.
     """
     return node
 
 def none_filter(node):
-    """To be used with ExpressionResult.
+    """To be used with ResultSet.
     """
     return True
 
 
 def compound_filter_factory(*functions):
-    """To be used with ExpressionResult.
+    """To be used with ResultSet.
     """
 
     def compound_filter(element):
@@ -145,18 +145,18 @@ def compound_filter_factory(*functions):
     return compound_filter
 
 
-class ExpressionResult(object):
+class ResultSet(object):
     """Clever collection type used as result of a browser expression.
     """
 
     def __init__(self, values):
-        self.__values = values
+        self._values = values
 
     def keys(self):
-        return map(operator.itemgetter(1), self.__values)
+        return map(operator.itemgetter(1), self._values)
 
     def values(self):
-        return list(map(operator.itemgetter(2), self.__values))
+        return list(map(operator.itemgetter(2), self._values))
 
     def get(self, key, default=None):
         try:
@@ -166,9 +166,9 @@ class ExpressionResult(object):
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self.__values[key][2]
+            return self._values[key][2]
         key = key.lower()
-        matches = filter(lambda item: key in item[0], self.__values)
+        matches = filter(lambda item: key in item[0], self._values)
         if not matches:
             raise KeyError(key)
         if len(matches) == 1:
@@ -187,20 +187,20 @@ class ExpressionResult(object):
             return False
 
     def __len__(self):
-        return len(self.__values)
+        return len(self._values)
 
     def __eq__(self, other):
-        if isinstance(other, ExpressionResult):
+        if isinstance(other, ResultSet):
             other = other.keys()
         return self.keys() == other
 
     def __ne__(self, other):
-        if isinstance(other, ExpressionResult):
+        if isinstance(other, ResultSet):
             other = other.keys()
         return self.keys() != other
 
     def __repr__(self):
-        return repr(map(operator.itemgetter(1), self.__values))
+        return repr(map(operator.itemgetter(1), self._values))
 
 
 _marker = object()

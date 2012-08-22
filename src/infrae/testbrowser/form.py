@@ -8,11 +8,46 @@ import lxml.etree
 from infrae.testbrowser.interfaces import IFormControl, IForm
 from infrae.testbrowser.interfaces import IClickableFormControl
 from infrae.testbrowser.interfaces import ISubmitableFormControl
-from infrae.testbrowser.expressions import ControlExpressions
-from infrae.testbrowser.utils import File, resolve_url
+from infrae.testbrowser.utils import File, ResultSet, resolve_url
 from infrae.testbrowser.utils import parse_charset, charset_encoder
 
 from zope.interface import implements
+
+
+class ControlResultSet(ResultSet):
+
+    def __init__(self, controls, name):
+
+        def prepare(control):
+            key = getattr(control, name, 'missing')
+            return (key.lower(), key, control)
+
+        super(ControlResultSet, self).__init__(map(prepare, controls))
+
+
+class ControlExpressions(object):
+
+    def __init__(self, form):
+        self.__form = form
+        self.__expressions = {}
+
+    def add(self, name, expression):
+        self.__expressions[name] = expression
+
+    def __getattr__(self, name):
+        if name in self.__expressions:
+            expression = self.__expressions[name]
+
+            def matcher(control):
+                for key, value in expression[0].items():
+                    if getattr(control, key, None) != value:
+                        return False
+                return True
+
+            return ControlResultSet(
+                filter(matcher, self.__form.controls.values()),
+                expression[1])
+        raise AttributeError(name)
 
 
 class Control(object):
@@ -335,3 +370,6 @@ class Form(object):
 
     def __str__(self):
         return lxml.etree.tostring(self.html, pretty_print=True)
+
+    def __repr__(self):
+        return '<form action="%s" />' % (self.action)

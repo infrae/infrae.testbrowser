@@ -9,8 +9,9 @@ from infrae.testbrowser.interfaces import IForm
 from infrae.testbrowser.interfaces import IFormControl
 from infrae.testbrowser.interfaces import IClickableFormControl
 from infrae.testbrowser.interfaces import ISubmitableFormControl
-from infrae.testbrowser.expressions import ControlExpressions
+from infrae.testbrowser.form import ControlExpressions
 from infrae.testbrowser.utils import parse_charset, resolve_location
+from infrae.testbrowser.selenium.errors import SeleniumElementNotFound
 
 from zope.interface import implements
 
@@ -24,6 +25,8 @@ class Control(object):
         self.__name = element_name
         assert self.__name is not None
         self.__multiple = False
+        self.__identifier = None
+        self.__label = None
         self.__type = element_type
         if element_type == 'select':
             self.__multiple = element.get_attribute('multiple') not in (None, 'false')
@@ -37,6 +40,26 @@ class Control(object):
             self.__options = collections.OrderedDict()
             if self.__type in ['checkbox', 'radio']:
                 self.__options[element.value] = element
+
+    @apply
+    def label():
+        def getter(self):
+            if self.__label:
+                return self.__label
+            if not self.__multiple:
+                if self.__identifier is None:
+                    self.__identifier = self._element.get_attribute('id')
+                if self.__identifier:
+                    try:
+                        label = self.form._element.get_element(
+                            xpath="//label[@for='%s']" % self.__identifier)
+                    except SeleniumElementNotFound:
+                        pass
+                    else:
+                        self.__label = label.text
+                        return self.__label
+            return self.__name
+        return property(getter)
 
     @apply
     def name():
@@ -197,11 +220,12 @@ class Form(object):
         self.controls = {}
         self.inspect = ControlExpressions(self)
         self.inspect.add('actions', ({'type': 'submit'}, 'value'))
-        self.__element = element
+        self.inspect.add('fields', ({}, 'label'))
+        self._element = element
         self.__populate_controls()
 
     def __populate_controls(self):
-        get_elements = self.__element.get_elements
+        get_elements = self._element.get_elements
 
         # Input tags
         for input_node in get_elements(
@@ -229,4 +253,7 @@ class Form(object):
         return self.controls.get(name)
 
     def submit(self, name=None, value=None):
-        self.__element.submit()
+        self._element.submit()
+
+    def __repr__(self):
+        return '<form action="%s" />' % (self.action)

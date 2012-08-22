@@ -179,6 +179,9 @@ expression with it, and query them after on HTML pages::
   `link`
     The result would be a list of links.
 
+  `form`
+    The result would be a list of forms.
+
   `clickable`
     Available only on selenium, that is a list of elements, that you
     can click on it (even if they are not links).

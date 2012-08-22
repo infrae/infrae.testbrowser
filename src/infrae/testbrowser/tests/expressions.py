@@ -6,6 +6,7 @@ import unittest
 import operator
 
 from infrae.testbrowser.tests import app
+from infrae.testbrowser.interfaces import IForm
 
 
 class ExpressionsTestCase(unittest.TestCase):
@@ -197,6 +198,19 @@ class ExpressionsTestCase(unittest.TestCase):
             self.assertRaises(
                 AssertionError,
                 operator.attrgetter('navigation'), browser.inspect)
+
+    def test_form_css(self):
+        with self.Browser(app.TestAppTemplate('nameless_form.html')) as browser:
+            browser.inspect.add('form', css='form', type='form')
+            browser.open('/access.html')
+            self.assertEqual(
+                map(lambda f: IForm.providedBy(f), browser.inspect.form),
+                [True, True])
+            self.assertEqual(
+                map(lambda f: f.action, browser.inspect.form),
+                ['/submit.html', '/transaction.html'])
+            self.assertTrue(IForm.providedBy(browser.inspect.form[0]))
+            self.assertTrue(IForm.providedBy(browser.inspect.form[1]))
 
     def test_http_encoding(self):
         with self.Browser(app.TestAppTemplate(

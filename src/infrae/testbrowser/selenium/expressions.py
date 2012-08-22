@@ -4,11 +4,12 @@
 
 from collections import namedtuple
 
+from infrae.testbrowser.selenium.form import Form
 from infrae.testbrowser.utils import node_to_node
 from infrae.testbrowser.utils import none_filter
 from infrae.testbrowser.utils import resolve_location
 from infrae.testbrowser.utils import compound_filter_factory
-from infrae.testbrowser.utils import ExpressionResult
+from infrae.testbrowser.utils import ResultSet
 
 
 def node_to_text(node):
@@ -28,26 +29,26 @@ class Clickable(object):
     def __init__(self, element):
         self.element = element
         self.text = element.text
-        self.__str = self.text
-        if not self.__str:
-            self.__str = '<%s />' % element.tag
+        self._text = self.text
+        if not self._text:
+            self._text = '<%s />' % element.tag
 
     def click(self):
         return self.element.click()
 
     def __eq__(self, other):
-        return self.__str == other
+        return self._text == other
 
     def __ne__(self, other):
-        return self.__str != other
+        return self._text != other
 
     def __str__(self):
-        if isinstance(self.__str, unicode):
-            return self.__str.encode('utf-8', 'replace')
-        return str(self.__str)
+        if isinstance(self._text, unicode):
+            return self._text.encode('utf-8', 'replace')
+        return str(self._text)
 
     def __unicode__(self):
-        return unicode(self.__str)
+        return unicode(self._text)
 
     def __repr__(self):
         return repr(str(self))
@@ -62,7 +63,7 @@ class Link(Clickable):
 
 def ClickablesFactory(factory):
 
-    class Clickables(ExpressionResult):
+    class Clickables(ResultSet):
 
         def __init__(self, items):
             super(Clickables, self).__init__(
@@ -87,6 +88,11 @@ EXPRESSION_TYPE = {
         compound_filter_factory(visible_filter, tag_filter('a')),
         ClickablesFactory(Link),
         Link),
+    'form': ExpressionType(
+        node_to_node,
+        compound_filter_factory(visible_filter, tag_filter('form')),
+        lambda elements: map(Form, elements),
+        Form),
     'clickable': ExpressionType(
         node_to_node,
         visible_filter,
@@ -97,6 +103,18 @@ EXPRESSION_TYPE = {
 
 _marker = object()
 
+def _cache(original):
+
+    def method(self, key, *args, **kwargs):
+        if self._cache is not None:
+            if key in self._cache:
+                return self._cache[key]
+            result = original(self, key, *args, **kwargs)
+            self._cache[key] = result
+            return result
+        return original(self, key, *args, **kwargs)
+
+    return method
 
 
 class ExpressionList(object):
@@ -104,7 +122,9 @@ class ExpressionList(object):
     def __init__(self, runner):
         self._runner = runner
         self._expressions = {}
+        self._cache = None
 
+    @_cache
     def _execute(self, name, default=_marker):
         if name in self._expressions:
             finder, type, unique = self._expressions[name]
@@ -136,11 +156,12 @@ class NestedResult(ExpressionList):
     def __init__(self, runner, node, definition):
         super(NestedResult, self).__init__(runner)
         self._keys = []
+        self._cache = {}
         for name, options in definition.items():
             if name is None and isinstance(options, (list, tuple)):
                 self._keys = options
                 continue
-            finder = None
+            finder = lambda d: [node,]
             if 'xpath' in options:
                 finder = (lambda xpath: lambda d: node.get_elements(
                         xpath=xpath))(options['xpath'])
@@ -165,7 +186,72 @@ class NestedResult(ExpressionList):
                 if value != expected:
                     return False
             return True
+        if isinstance(other, list) and len(self._keys):
+            for key, expected in zip(self._keys, other):
+                value = self._execute(key, default=_marker)
+                if value != expected:
+                    return False
+            return True
+        if len(self._keys) == 1:
+            value = self._execute(self._keys[0], default=_marker)
+            if value == expected:
+                return True
         return False
+
+
+class NestedResultSet(object):
+
+    def __init__(self, values, definition):
+        self._definition = definition
+        self._values = values
+        self._keys = []
+        self._cache = None
+        for name, options in definition.items():
+            if name is None and isinstance(options, (list, tuple)):
+                self._keys = options
+                break
+
+    def _build(self):
+        if len(self._keys) == 1:
+            self._cache = []
+            key = self._keys[0]
+            for value in self._values:
+                result = value._execute(key, default=_marker)
+                assert result is not _marker
+                self._cache.append((str(result).lower(), value))
+
+    def __len__(self):
+        return len(self._values)
+
+    def __eq__(self, other):
+        return self._values == other
+
+    def __ne__(self, other):
+        return self._values != other
+
+    def __contains__(self, other):
+        return other in self._values
+
+    def __repr__(self):
+        return repr(self._values)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._values[key]
+        if len(self._keys) == 1:
+            if self._cache is None:
+                self._build()
+            matches = filter(lambda item: key in item[0], self._cache)
+            if not matches:
+                raise KeyError(key)
+            if len(matches) == 1:
+                return matches[0][1]
+            exact_matches = filter(lambda item: key == item[0], matches)
+            if len(exact_matches) == 1:
+                return exact_matches[0][1]
+            raise AssertionError(
+                "Multiple matches (%d)" % len(matches), map(str, matches))
+        raise KeyError(key)
 
 
 class Expressions(ExpressionList):
@@ -196,7 +282,7 @@ class Expressions(ExpressionList):
             values = []
             for node in self._runner(finder):
                 values.append(NestedResult(self._runner, node, nested))
-            return values
+            return NestedResultSet(values, nested)
 
         values = self._execute(name, default=_marker)
         if values is not _marker:

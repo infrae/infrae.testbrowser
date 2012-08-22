@@ -6,7 +6,8 @@ import lxml
 from collections import defaultdict
 from collections import namedtuple
 
-from infrae.testbrowser.utils import ExpressionResult
+from infrae.testbrowser.form import Form
+from infrae.testbrowser.utils import ResultSet
 from infrae.testbrowser.utils import node_to_node, none_filter
 from infrae.testbrowser.utils import resolve_url
 
@@ -59,7 +60,7 @@ class Link(object):
         return repr(str(self))
 
 
-class Links(ExpressionResult):
+class Links(ResultSet):
 
     def __init__(self, links, browser):
         super(Links, self).__init__(
@@ -93,6 +94,11 @@ EXPRESSION_TYPE = {
         tag_filter('a'),
         Links,
         Link),
+    'form': ExpressionType(
+        node_to_node,
+        tag_filter('form'),
+        lambda nodes, browser: map(lambda n: Form(n, browser), nodes),
+        Form),
     }
 
 
@@ -135,38 +141,3 @@ class Expressions(object):
             return expression.nodes(nodes, self.__browser)
         raise AttributeError(name)
 
-
-class Controls(ExpressionResult):
-
-    def __init__(self, controls, name):
-
-        def prepare(control):
-            key = getattr(control, name, 'missing')
-            return (key.lower(), key, control)
-
-        super(Controls, self).__init__(map(prepare, controls))
-
-
-class ControlExpressions(object):
-
-    def __init__(self, form):
-        self.__form = form
-        self.__expressions = {}
-
-    def add(self, name, expression):
-        self.__expressions[name] = expression
-
-    def __getattr__(self, name):
-        if name in self.__expressions:
-            expression = self.__expressions[name]
-
-            def matcher(control):
-                for key, value in expression[0].items():
-                    if getattr(control, key, None) != value:
-                        return False
-                return True
-
-            return Controls(
-                filter(matcher, self.__form.controls.values()),
-                expression[1])
-        raise AttributeError(name)
