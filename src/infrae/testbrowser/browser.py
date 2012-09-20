@@ -247,18 +247,20 @@ class Browser(object):
                     self.json = json.loads(self.contents)
 
     def open(self, url, method='GET', query=None,
-             form=None, form_charset='utf-8', form_enctype='application/x-www-form-urlencoded'):
+             form=None, form_charset='utf-8', form_enctype='application/x-www-form-urlencoded',
+             data=None, data_type=None):
         if self.__response:
             self.__history.append(
                 (self.__url, self.__method, self.__response))
-        data = None
-        data_type = None
         self.html = None
         self.xml = None
         self.json = None
         self.__response = None
         self.__method = method
+        
         if form is not None:
+            assert not data, u'cannot have both form and data'
+            assert not data_type, u'cannot specify data_type when using form'
             # We posted a form
             if method == 'GET':
                 assert form_enctype == 'application/x-www-form-urlencoded', \

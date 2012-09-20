@@ -29,7 +29,7 @@ Example::
 
 On the browser you have the following methods:
 
-``open(url, method='GET', query=None, form=None, form_enctype='application/x-www-form-urlencoded')``
+``open(url, method='GET', query=None, form=None, form_enctype='application/x-www-form-urlencoded', data=None, data_type=None)``
    Open the given `url`, with the given `method`. If query is
    provided, it will be encoded in the URL. If form is provided, it
    will be set as payload depending of `form_enctype`
@@ -37,7 +37,10 @@ On the browser you have the following methods:
    authentication can be provided in the URL (via
    ``user:password@localhost``). As the host part doesn't really have
    any meaning, you can directly specify a path as URL. It return the
-   HTTP status code returned by the application.
+   HTTP status code returned by the application.  An alternative to `form` is 
+   the `data` and `data_type` parameters.  The param `data` is the pre-encoded
+   body of the request, and `data_type` is the the content type of the body.
+   These parameters are useful for http PUT.
 
 ``reload()``
    Reload the currently open URL (sending back any posting data).

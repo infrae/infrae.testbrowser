@@ -422,6 +422,23 @@ class BrowsingTestCase(browser.BrowserTestCase):
             ['content type:application/x-www-form-urlencoded',
              'content length:22',
              'position=42&name=index'])
+        
+    def test_open_put_with_data(self):
+        browser = Browser(app.test_app_data)
+        browser.open('http://localhost/root.exe',
+                     method='PUT',
+                     data='blah',
+                     data_type='text/plain')
+        self.assertEqual(browser.url, '/root.exe')
+        self.assertEqual(browser.location, '/root.exe')
+        self.assertEqual(browser.status, '200 Ok')
+        self.assertEqual(browser.method, 'PUT')
+        self.assertNotEqual(browser.html, None)
+        self.assertEqual(
+            browser.html.xpath('//li/text()'),
+            ['content type:text/plain',
+             'content length:4',
+             'blah'])
 
     def test_form_post_multipart(self):
         browser = Browser(app.test_app_data)

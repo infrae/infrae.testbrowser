@@ -13,6 +13,9 @@ Changelog
 
 * Improve Selenium browser.
 
+* improve support for arbitrary http methods by providing data and
+  data_type parameters to browser.open
+
 2.0b1 (2011/11/07)
 ------------------
 
