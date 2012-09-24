@@ -4,10 +4,14 @@
 
 import re
 
+from zope.interface import implements
+from infrae.testbrowser.interfaces import ICookies, ICookie
+
 
 class Cookie(object):
     """Represent a single cookie value.
     """
+    implements(ICookie)
     QPARMRE= re.compile(
             '([\x00- ]*([^\x00- ;,="]+)="([^"]*)"([\x00- ]*[;,])?[\x00- ]*)')
     PARMRE = re.compile(
@@ -64,6 +68,7 @@ class Cookie(object):
 class Cookies(object):
     """A cookie container.
     """
+    implements(ICookies)
 
     def __init__(self):
         self.clear()

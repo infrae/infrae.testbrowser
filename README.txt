@@ -37,7 +37,7 @@ On the browser you have the following methods:
    authentication can be provided in the URL (via
    ``user:password@localhost``). As the host part doesn't really have
    any meaning, you can directly specify a path as URL. It return the
-   HTTP status code returned by the application.  An alternative to `form` is 
+   HTTP status code returned by the application.  An alternative to `form` is
    the `data` and `data_type` parameters.  The param `data` is the pre-encoded
    body of the request, and `data_type` is the the content type of the body.
    These parameters are useful for http PUT.
@@ -123,13 +123,42 @@ The following properties are helpful as well:
   Access to browser options.
 
 
+Browser cookies
+---------------
+
+You can access the currently set cookies with the dict-like object ``cookies``
+available on the browser::
+
+   >>> browser.cookies['mycookie']
+   mycookie=myvalue
+
+In addition to default dictionary methods, this object as the following methods:
+
+``add(name, value)``
+   Add a new cookie called ``name`` with the given value ``value``.
+
+``clear``
+   Clear all set cookies.
+
+
 Browser options
 ---------------
 
-The following options are attributes of the options object, example::
+The following options are attributes of the ``options`` object,
+example::
 
-    >>> browser.options.handle_errors = False
+   >>> browser.options.handle_errors = False
 
+``server``
+  Server name to use to query the WSGI application (default to
+  ``localhost``).
+
+``port``
+  Port number to use to query the WSGI application (default to ``80``).
+
+``protocol``
+  HTTP protocol to use to query the WSGI application (default to
+  ``HTTP/1.0``).
 
 ``follow_redirect``
   Boolean indicating if a redirect must be automatically
@@ -147,9 +176,10 @@ The following options are attributes of the options object, example::
   environment. Default to True.
 
 ``cookie_support``
-  Boolean indicating if we must support cookie. By default to
-  True. **The cookie support is extremely limited for the moment**,
-  just setting a cookie works.
+  Boolean indicating if we must support cookie. By default to ``True``.
+
+``default_wsgi_environ``
+  Dictionnary that can be used to inject variable in the WSGI environment.
 
 
 Inspect

@@ -1,20 +1,32 @@
 Changelog
 =========
 
-2.0 (unreleased)
+2.0 (2012/09/24)
 ----------------
 
-* Add the option ``follow_external_redirect`` for the standard browser.
+* Add the option ``follow_external_redirect`` for the standard
+  browser, which let you redirect to a different domain, but that
+  domain is still handled by the wsgi application (this modify browser
+  options to the new domain).
 
-* Improve cookie support.
+* Add support for automatic JSON deserialization in a ``json``
+  attribute for the standard browser.
+
+* Improve expressions: add a type ``form`` to create forms out of the
+  result of the expression, add a flag ``unique`` that makes possible
+  for an expression to return only one value, or None if the
+  expression didn't match.
+
+* Improve support for arbitrary http methods by providing ``data`` and
+  ``data_type`` parameters to the method ``open`` for the standard browser.
+
+* Improve cookie support (support setting and deleting cookies, and
+  multiple cookies).
 
 * Improve default WSGI environ to support HTTPS variable, if the port
   is set to ``443``.
 
-* Improve Selenium browser.
-
-* improve support for arbitrary http methods by providing data and
-  data_type parameters to browser.open
+* Improve Selenium browser support.
 
 2.0b1 (2011/11/07)
 ------------------

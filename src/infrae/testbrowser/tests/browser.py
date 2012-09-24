@@ -4,6 +4,8 @@
 
 import unittest
 
+from zope.interface.verify import verifyObject
+from infrae.testbrowser.interfaces import ICookie, ICookies
 from infrae.testbrowser.tests import app
 
 
@@ -16,6 +18,7 @@ class BrowserTestCase(unittest.TestCase):
         """Test that cookies set by the server are available.
         """
         with self.Browser(app.test_app_cookies_server) as browser:
+            self.assertTrue(verifyObject(ICookies, browser.cookies))
             self.assertEqual(len(browser.cookies), 0)
             self.assertEqual(browser.cookies.keys(), [])
             self.assertNotIn('browser', browser.cookies)
@@ -23,6 +26,8 @@ class BrowserTestCase(unittest.TestCase):
             browser.open('/page.html')
             self.assertEqual(len(browser.cookies), 1)
             self.assertEqual(browser.cookies, ['browser'])
+            self.assertTrue(verifyObject(ICookie, browser.cookies['browser']))
+            self.assertEqual(browser.cookies['browser'].name, 'browser')
             self.assertEqual(browser.cookies['browser'].value, 'testing')
             self.assertIn('browser', browser.cookies)
             # No cookies set:

@@ -105,6 +105,60 @@ class IAdvancedBrowser(IBrowser):
         pass
 
 
+# Cookie support
+
+
+class ICookie(Interface):
+    """Represent a single cookie.
+    """
+    name = Attribute(u"Name of the cookie")
+    value = Attribute(u"Value of the cookie")
+    options = Attribute(u"Dictionnary containing cookie options "
+                        u"(max-age, http-only)...")
+
+
+class ICookies(Interface):
+    """Represent all cookies currently set.
+    """
+
+    def add(name, value):
+        """Add a new cookie called ``name`` with the given ``value``.
+        """
+
+    def clear():
+        """Clear all set cookies.
+        """
+
+    def keys():
+        """List all cookies names.
+        """
+
+    def __getitem__(key):
+        """Get a cookie by its name.
+        """
+
+    def __contains__(key):
+        """Return ``True`` if there is a cookie called ``key``,
+        ``False`` otherwise.
+        """
+
+    def __len__():
+        """Return the number cookies currently sets.
+        """
+
+    def __eq__(other):
+        """Return ``True`` if the cookies name match the list
+        ``other``, ``False`` otherwise.
+        """
+
+    def __ne__(other):
+        """Return ``True`` if the cookies name doesn't match the list
+        ``other``, ``False`` if they do match.
+        """
+
+
+# Form support
+
 class IFormControl(Interface):
     """Represent a control in a form.
     """
@@ -153,13 +207,18 @@ class IForm(Interface):
         """
 
 
+# Browser options
+
+
 class ICustomizableOptions(Interface):
     server = Attribute(u'Name of the server to use')
     port = Attribute(u'Port of the server to use')
 
 
 class ISeleniumCustomizableOptions(Interface):
-    # We don't inherit from ICustomizableOptions due zope.interface API suckiness
+    # We don't inherit from ICustomizableOptions due zope.interface
+    # API suckiness
+
     server = Attribute(u'Name of the server to use')
     port = Attribute(u'Port of the server to use')
     browser = Attribute(u'Browser to use firefox/internet explorer/chrome')
@@ -167,7 +226,8 @@ class ISeleniumCustomizableOptions(Interface):
     selenium_port = Attribute(u'Port to use to connect to Selenium')
     selenium_platform = Attribute(u'Platform to request to Selenium')
 
-# API of sub components.
+
+# Advanced browser sub compoments.
 
 class IWSGIResponse(Interface):
     status = Attribute(u'HTTP status line')

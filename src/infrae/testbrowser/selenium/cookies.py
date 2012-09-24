@@ -4,8 +4,12 @@
 
 import operator
 
+from zope.interface import implements
+from infrae.testbrowser.interfaces import ICookies, ICookie
+
 
 class Cookie(object):
+    implements(ICookie)
 
     def __init__(self, options):
         self.name = options['name']
@@ -19,6 +23,7 @@ class Cookie(object):
 class Cookies(object):
     """Cookies API for selenium.
     """
+    implements(ICookies)
 
     def __init__(self, driver):
         self.__driver = driver
