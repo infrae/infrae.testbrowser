@@ -155,8 +155,15 @@ class ResultSet(object):
     def keys(self):
         return map(operator.itemgetter(1), self._values)
 
+    def items(self):
+        return map(operator.itemgetter(1, 2), self._values)
+
     def values(self):
-        return list(map(operator.itemgetter(2), self._values))
+        return map(operator.itemgetter(2), self._values)
+
+    iteritems = items
+    iterkeys = keys
+    itervalues = values
 
     def get(self, key, default=None):
         try:
