@@ -99,6 +99,16 @@ EXPRESSION_TYPE = {
         tag_filter('form'),
         lambda nodes, browser: map(lambda n: Form(n, browser), nodes),
         Form),
+    'form-fields': ExpressionType(
+        node_to_node,
+        tag_filter('form'),
+        lambda nodes, browser: map(lambda n: Form(n, browser).inspect.fields, nodes),
+        lambda node: Form(node).inspect.fields),
+    'form-actions': ExpressionType(
+        node_to_node,
+        tag_filter('form'),
+        lambda nodes, browser: map(lambda n: Form(n, browser).inspect.actions, nodes),
+        lambda node: Form(node).inspect.actions),
     }
 
 

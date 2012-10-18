@@ -81,8 +81,8 @@ EXPRESSION_TYPE = {
     'text': ExpressionType(
         node_to_text,
         none_filter,
-        lambda elements: list(elements),
-        lambda element: element),
+        lambda nodes: list(nodes),
+        lambda node: node),
     'link': ExpressionType(
         node_to_node,
         compound_filter_factory(visible_filter, tag_filter('a')),
@@ -91,8 +91,18 @@ EXPRESSION_TYPE = {
     'form': ExpressionType(
         node_to_node,
         compound_filter_factory(visible_filter, tag_filter('form')),
-        lambda elements: map(Form, elements),
+        lambda nodes: map(Form, nodes),
         Form),
+    'form-fields': ExpressionType(
+        node_to_node,
+        compound_filter_factory(visible_filter, tag_filter('form')),
+        lambda nodes: map(lambda node: Form(node).inspect.fields, nodes),
+        lambda node: Form(node).inspect.fields),
+    'form-actions': ExpressionType(
+        node_to_node,
+        compound_filter_factory(visible_filter, tag_filter('form')),
+        lambda nodes: map(lambda node: Form(node).inspect.actions, nodes),
+        lambda node: Form(node).inspect.actions),
     'clickable': ExpressionType(
         node_to_node,
         visible_filter,
