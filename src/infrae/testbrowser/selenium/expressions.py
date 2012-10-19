@@ -133,9 +133,25 @@ class ExpressionList(object):
         self._runner = runner
         self._expressions = {}
         self._cache = None
+        self._nested = {}
 
     @_cache
     def _execute(self, name, default=_marker):
+        if name in self._nested:
+            finder, nested, unique = self._nested[name]
+            values = []
+            for node in self._runner(finder):
+                values.append(NestedResult(self._runner, node, nested))
+            if unique:
+                if len(values) > 1:
+                    raise AssertionError(
+                        u'Multiple elements found for %s where only '
+                        u'one was expected.' % name)
+                if not len(values):
+                    return None
+                return values[0]
+            return NestedResultSet(values, nested)
+
         if name in self._expressions:
             finder, type, unique = self._expressions[name]
             if finder is not None:
@@ -172,16 +188,19 @@ class NestedResult(ExpressionList):
                 self._keys = options
                 continue
             finder = lambda d: [node,]
+            nested = options.get('nested')
+            unique = options.get('unique', False)
             if 'xpath' in options:
                 finder = (lambda xpath: lambda d: node.get_elements(
                         xpath=xpath))(options['xpath'])
             elif 'css' in options:
                 finder = (lambda css: lambda d: node.get_elements(
                         css=css))(options['css'])
-            self._expressions[name] = (
-                finder,
-                options.get('type', 'text'),
-                options.get('unique', False))
+            if nested is None:
+                self._expressions[name] = (
+                    finder, options.get('type', 'text'), unique)
+            else:
+                self._nested[name] = (finder, nested, unique)
 
     def __repr__(self):
         values = []
@@ -267,10 +286,6 @@ class NestedResultSet(object):
 
 class Expressions(ExpressionList):
 
-    def __init__(self, runner):
-        super(Expressions, self).__init__(runner)
-        self._nested = {}
-
     def add(self, name, xpath=None, type='text', css=None, nested=None, unique=False):
         finder = None
         if xpath is not None:
@@ -285,16 +300,9 @@ class Expressions(ExpressionList):
                 raise AssertionError(u'Unknown expression type %s' % type)
             self._expressions[name] = (finder, type, unique)
         else:
-            self._nested[name] = (finder, nested)
+            self._nested[name] = (finder, nested, unique)
 
     def __getattr__(self, name):
-        if name in self._nested:
-            finder, nested = self._nested[name]
-            values = []
-            for node in self._runner(finder):
-                values.append(NestedResult(self._runner, node, nested))
-            return NestedResultSet(values, nested)
-
         values = self._execute(name, default=_marker)
         if values is not _marker:
             return values
