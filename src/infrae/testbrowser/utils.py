@@ -11,6 +11,9 @@ import urllib
 import urlparse
 
 
+_marker = object()
+
+
 def parse_charset(charsets):
     """Parse form accept charset and return a list of charset that can
     be used in Python.
@@ -165,26 +168,31 @@ class ResultSet(object):
     iterkeys = keys
     itervalues = values
 
-    def get(self, key, default=None):
-        try:
-            return self.__getitem__(key)
-        except KeyError:
+    def get(self, key, default=None, multiple=False):
+        key = key.lower()
+        matches = filter(lambda item: key in item[0], self._values)
+        if not matches:
             return default
+        if len(matches) == 1:
+            if multiple:
+                return [matches[0][2]]
+            return matches[0][2]
+        exact_matches = map(
+            operator.itemgetter(2),
+            filter(lambda item: key == item[0], matches))
+        if multiple:
+            return exact_matches
+        if len(exact_matches) == 1:
+            return exact_matches[0]
+        return default
 
     def __getitem__(self, key):
         if isinstance(key, int):
             return self._values[key][2]
-        key = key.lower()
-        matches = filter(lambda item: key in item[0], self._values)
-        if not matches:
+        value = self.get(key, default=_marker)
+        if value is _marker:
             raise KeyError(key)
-        if len(matches) == 1:
-            return matches[0][2]
-        exact_matches = filter(lambda item: key == item[0], matches)
-        if len(exact_matches) == 1:
-            return exact_matches[0][2]
-        raise AssertionError(
-            "Multiple matches (%d)" % len(matches), map(str, matches))
+        return value
 
     def __contains__(self, key):
         try:
@@ -208,9 +216,6 @@ class ResultSet(object):
 
     def __repr__(self):
         return repr(map(operator.itemgetter(1), self._values))
-
-
-_marker = object()
 
 
 class Handlers(object):

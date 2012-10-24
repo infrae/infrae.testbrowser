@@ -113,6 +113,9 @@ class ExpressionsTestCase(unittest.TestCase):
             self.assertEqual(repr(links['contact']), repr('Contact'))
             self.assertEqual(links['contact'].text, 'Contact')
             self.assertEqual(links['contact'].url, '/contact.html')
+            self.assertEqual(links.get('Contact', multiple=True), ['Contact'])
+            self.assertEqual(links.get('Other'), None)
+            self.assertEqual(links.get('Other', default=42), 42)
             links['contact'].click()
 
             self.assertEqual(browser.location, '/contact.html')
@@ -162,6 +165,10 @@ class ExpressionsTestCase(unittest.TestCase):
                       'Development ...',
                       'Advanced Lisp ...',
                       'Échange culturel ...']))
+            # The get method works too
+            self.assertEqual(
+                browser.inspect.navigation.get('Contact', multiple=True),
+                ['Contact'])
 
     def test_unique_xpath(self):
         with self.Browser(app.TestAppTemplate(
