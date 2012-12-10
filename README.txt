@@ -215,6 +215,12 @@ expression with it, and query them after on HTML pages::
   `form`
     The result would be a list of forms.
 
+  `form-actions`
+    The result would be the actions of a form.
+
+  `form-fields`
+    The result would be the fields of a form.
+
   `clickable`
     Available only on selenium, that is a list of elements, that you
     can click on it (even if they are not links).

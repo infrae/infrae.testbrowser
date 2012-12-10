@@ -1,10 +1,13 @@
 Changelog
 =========
 
-2.1 (unreleased)
-----------------
+2.0.1 (2012/12/10)
+------------------
 
-* ...
+* Add new expression ``form-fields`` and ``form-actions`` that are
+  alias to actions and fields exposed by ``form``.
+
+* Improve expressions API.
 
 2.0 (2012/09/24)
 ----------------
