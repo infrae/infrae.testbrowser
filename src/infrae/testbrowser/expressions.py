@@ -3,6 +3,7 @@
 # See also LICENSE.txt
 
 import lxml
+import lxml.cssselect
 from collections import defaultdict
 from collections import namedtuple
 

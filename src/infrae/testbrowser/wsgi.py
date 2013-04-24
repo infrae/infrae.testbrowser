@@ -2,7 +2,8 @@
 # Copyright (c) 2010-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
 
-from cStringIO import StringIO
+import urllib2
+import io
 from zope.interface import implements
 
 from infrae.testbrowser.headers import HTTPHeaders
@@ -17,7 +18,7 @@ class WSGIResponse(object):
         self.__environ = environ
         self.status = None
         self.headers = HTTPHeaders()
-        self.output = StringIO()
+        self.output = io.BytesIO()
 
     def start_response(self, status, response_headers, exc_info=None):
         self.status = status
@@ -50,8 +51,8 @@ class WSGIServer(object):
         environ['SERVER_PORT'] = self.options.port
         environ['wsgi.version'] = (1, 0)
         environ['wsgi.url_scheme'] = scheme
-        environ['wsgi.input'] = StringIO()
-        environ['wsgi.errors'] = StringIO()
+        environ['wsgi.input'] = io.BytesIO()
+        environ['wsgi.errors'] = io.BytesIO()
         environ['wsgi.multithread'] = False
         environ['wsgi.multiprocess'] = False
         environ['wsgi.run_once'] = False
@@ -69,7 +70,7 @@ class WSGIServer(object):
             uri, query = uri.split('?', 1)
         if '#' in uri:
             uri, _ = uri.split('#', 1)
-        environ['PATH_INFO'] = uri
+        environ['PATH_INFO'] = urllib2.unquote(uri)
         environ['QUERY_STRING'] = query
         if data is not None and data_type is not None:
             environ['wsgi.input'].write(data)

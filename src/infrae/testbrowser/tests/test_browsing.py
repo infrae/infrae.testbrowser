@@ -298,6 +298,30 @@ class BrowsingTestCase(browser.BrowserTestCase):
                  'wsgi.url_scheme: http',
                  'wsgi.version: (1, 0)'])
 
+    def test_environ_encoded_path(self):
+        """A strange looking path is properly decoded inside environ.
+        """
+        with Browser(app.test_app_environ) as browser:
+            browser.open('/root+to%E2%80%A6.html?v=%E2%88%9A')
+            self.assertEqual(browser.location, '/root+to%E2%80%A6.html')
+            self.assertEqual(browser.status, '200 Ok')
+            self.assertNotEqual(browser.html, None)
+            self.assertEqual(
+                browser.html.xpath('//li/text()'),
+                [u'PATH_INFO: /root+to….html',
+                 'QUERY_STRING: v=%E2%88%9A',
+                 'REQUEST_METHOD: GET',
+                 'SCRIPT_NAME: ',
+                 'SERVER_NAME: localhost',
+                 'SERVER_PORT: 80',
+                 'SERVER_PROTOCOL: HTTP/1.0',
+                 'wsgi.handleErrors: True',
+                 'wsgi.multiprocess: False',
+                 'wsgi.multithread: False',
+                 'wsgi.run_once: False',
+                 'wsgi.url_scheme: http',
+                 'wsgi.version: (1, 0)'])
+
     def test_environ_changed_hostname(self):
         with Browser(app.test_app_environ) as browser:
             browser.options.server = 'example.com'

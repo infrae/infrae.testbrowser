@@ -5,6 +5,12 @@
 import os
 import urlparse
 
+def encode(value):
+    if isinstance(value, unicode):
+        return value.encode('utf-8')
+    return str(value)
+
+
 def test_app_write(environ, start_response):
     write = start_response('200 Ok', [('Content-type', 'text/html'),])
     write('<html>')
@@ -60,13 +66,13 @@ def test_app_data(environ, start_response):
             '<li>%s</li></ul></html>' % environ['wsgi.input'].read()]
 
 def test_app_environ(environ, start_response):
-    start_response('200 Ok' , [('Content-type', 'text/html'),])
-    yield '<html><ul>'
+    start_response('200 Ok' , [('Content-type', 'text/html; charset=utf-8'),])
+    yield '<html><head></head><body><ul>'
     for key in sorted(environ.keys()):
         if key not in ('wsgi.input', 'wsgi.errors'):
             # We ignore file containers
-            yield '<li>%s: %s</li>' % (str(key), str(environ[key]))
-    yield '</ul></html>'
+            yield '<li>%s: %s</li>' % (encode(key), encode(environ[key]))
+    yield '</ul></body></html>'
 
 def test_app_empty(environ, start_response):
     start_response('200 Ok', [('Content-type', 'text/html'),])

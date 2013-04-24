@@ -9,9 +9,10 @@ version = '2.1dev'
 
 
 requires = [
-    'setuptools',
-    'lxml',
-    'zope.interface'
+   'cssselect',
+   'lxml',
+   'setuptools',
+   'zope.interface'
 ]
 if sys.version_info < (2, 7):
    requires.append('ordereddict')
