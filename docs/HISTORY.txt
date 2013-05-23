@@ -1,13 +1,14 @@
 Changelog
 =========
 
-2.1 (unreleased)
-----------------
+2.0.2 (2013/05/23)
+------------------
 
-* Add cssselect as a dependency in order to work with lxml 3.x
+* Add ``cssselect`` as a dependency in order to work with ``lxml``
+  3.x.
 
 * Fix ``PATH_INFO`` environment variable in the simple browser that
-  was not properly decoded.
+  was not properly quoted.
 
 2.0.1 (2012/12/10)
 ------------------
