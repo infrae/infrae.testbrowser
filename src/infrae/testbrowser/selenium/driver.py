@@ -6,6 +6,7 @@ import atexit
 import json
 import unittest
 import urllib2
+import sys
 
 from zope.testing.cleanup import addCleanUp
 
@@ -127,6 +128,9 @@ class Seleniums(object):
                 session.quit()
             except unittest.SkipTest:
                 pass
+            except:
+                print >>sys.stderr, \
+                    'Error while clearing the browser connection.'
         self.__sessions = {}
 
 
