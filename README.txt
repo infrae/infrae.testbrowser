@@ -435,7 +435,7 @@ They are on par with the possible configuration environment variables:
 Code repository
 ===============
 
-You can find the source code of this extensions in mercurial at
-https://hg.infrae.com/infrae.testbrowser.
+You can find the source code of this extensions in Git at
+https://github.com/infrae/infrae.testbrowser.
 
 .. _zope.testbrowser: http://pypi.python.org/pypi/zope.testbrowser
